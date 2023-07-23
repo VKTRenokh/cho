@@ -5,7 +5,8 @@
   "main": "./src/index.ts",
   "scripts": {
     "start:dev": "ts-node-dev ./src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "node ./esbuild.config.js",
+    "start": "node dist/index.js"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +17,7 @@
     "discord-api-types": "^0.37.48",
     "discord.js": "^14.11.0",
     "dotenv": "^16.3.1",
+    "esbuild": "^0.18.13",
     "play-dl": "^1.9.6",
     "sodium": "^3.0.2",
     "ts-node-dev": "^2.0.0",

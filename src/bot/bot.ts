@@ -1,9 +1,9 @@
 import * as discord from "discord.js";
 import * as discordVoice from "@discordjs/voice";
 import { Partials } from "discord.js";
-import * as ytdl from "play-dl";
 import { rajiId, animeGreetingGifUrl } from "../contsants/constants";
 import { Player } from "./player/player";
+import { docs } from "../contsants/documentation";
 
 export class Bot {
   client: discord.Client | null = null;
@@ -95,7 +95,7 @@ export class Bot {
         message.reply(
           Math.random() > 0.5
             ? "https://tenor.com/view/blacrswan-monkey-gif-20441402"
-            : "https://tenor.com/view/monkey-run-small-monkey-gif-24640775",
+            : "https://tenor.com/view/monkey-run-small-monkey-gif-24640775"
         );
       }
 
@@ -131,6 +131,15 @@ export class Bot {
         this.player.unpause();
       }
 
+      if (message.content === "!docs") {
+        if (!(message.channel instanceof discord.TextChannel)) {
+          return;
+        }
+
+        this.sendDocs(message.channel);
+        return;
+      }
+
       if (message.author.id !== rajiId) {
         return;
       }
@@ -145,5 +154,21 @@ export class Bot {
 
   greet(message: discord.Message<boolean>) {
     message.reply(animeGreetingGifUrl);
+  }
+
+  sendDocs(channel: discord.TextChannel) {
+    docs.forEach((doc) => {
+      const argsStr = doc.args.reduce((acc, curr) => {
+        return acc + " " + curr;
+      }, "");
+
+      const embed = new discord.EmbedBuilder()
+        .setTitle(doc.commandName)
+        .setDescription(
+          `${doc.desc}\n\n arguments count ${doc.args.length} ${argsStr}`
+        );
+
+      channel.send({ embeds: [embed] });
+    });
   }
 }
