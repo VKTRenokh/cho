@@ -39,7 +39,7 @@ export class Player {
         .setColor("#9ece60")
         .setTitle("music.length is 0")
         .setThumbnail(
-          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMrmGYqwRxx-1AS-ZSVOl29ZNOaARkvAJFVZIgttPs&s",
+          "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMrmGYqwRxx-1AS-ZSVOl29ZNOaARkvAJFVZIgttPs&s"
         )
         .setDescription("There is no more videos...");
 
@@ -56,6 +56,11 @@ export class Player {
     this.audioPlayer.play(source);
 
     this.audioPlayer.on(discordVoice.AudioPlayerStatus.Idle, () => {
+      this.audioPlayerSubscription?.unsubscribe();
+      this.audioPlayer?.stop();
+      this.audioPlayer = null;
+      this.audioPlayerSubscription = null;
+
       this.play(channel);
     });
 

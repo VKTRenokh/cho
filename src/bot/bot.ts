@@ -10,6 +10,8 @@ export class Bot {
   voiceConnection: discordVoice.VoiceConnection | null = null;
   isIdling: boolean = false;
   player: Player;
+  rest: discord.REST | null = null
+  commands: discord.RESTPostAPIChatInputApplicationCommandsJSONBody[] = []
 
   constructor() {
     this.player = new Player();
@@ -38,6 +40,11 @@ export class Bot {
       ],
     });
 
+    this.rest = new discord.REST({
+      version: '9',
+    }).setToken(process.env.TOKEN)
+
+
     this.client.on("messageCreate", async (message) => {
       console.log(message.content);
 
@@ -59,7 +66,6 @@ export class Bot {
         }
 
         if (!message.guild || !message.guildId) {
-          console.log("asdfsdaf");
           return;
         }
 
@@ -70,7 +76,16 @@ export class Bot {
         }
 
         this.player.pushNewVideoUrl(videoUrl);
-        console.log(this.player.queue.items);
+
+        if (!(message.channel instanceof discord.TextChannel)) {
+          return;
+        }
+
+        console.log(this.player.queue.length);
+
+        if (!this.player.queue.length) {
+          this.player.play(message.channel);
+        }
 
         if (this.player.voiceConnection) {
           return;
@@ -83,10 +98,6 @@ export class Bot {
         });
 
         this.player.voiceConnection = connection;
-
-        if (!(message.channel instanceof discord.TextChannel)) {
-          return;
-        }
 
         this.player.play(message.channel);
       }
@@ -131,6 +142,7 @@ export class Bot {
         this.player.unpause();
       }
 
+
       if (message.content === "!docs") {
         if (!(message.channel instanceof discord.TextChannel)) {
           return;
@@ -149,7 +161,74 @@ export class Bot {
       }
     });
 
-    this.client.login(process.env.TOKEN);
+    this.client.on(discord.Events.InteractionCreate, async (interaction) => {
+      console.log('interaction create')
+
+      if (interaction.isModalSubmit()) {
+        if (!(interaction.customId === 'igorstrimit?')) {
+          return
+        }
+
+        interaction.guild?.voiceStates.cache.map((voiceState) => {
+          voiceState.setChannel('1139639067559084205')
+        })
+
+        await interaction.reply({
+          content: 'true',
+          ephemeral: true,
+        })
+      }
+
+      if (!interaction.isChatInputCommand()) {
+        return
+      }
+
+      if (interaction.commandName === 'pokezhmodal') {
+        const modal = new discord.ModalBuilder().setCustomId('igorstrimit?').setTitle('Question?!!!?!?!!?')
+
+        const textInput = new discord.TextInputBuilder()
+          .setCustomId('igorsmotritstrim')
+          .setRequired(true)
+          .setLabel('игорь смотрит стрим?')
+          .setStyle(discord.TextInputStyle.Paragraph)
+
+        const action = new discord.ActionRowBuilder<discord.TextInputBuilder>().setComponents(textInput)
+
+        modal.setComponents(action)
+
+        await interaction.showModal(modal)
+      }
+    })
+
+    this.client.login(process.env.TOKEN).then(() => {
+      this.commands.push(new discord.SlashCommandBuilder().setName('pokezhmodal').setDescription('raji pred').toJSON())
+
+      void this.createCommands()
+    })
+  }
+
+  private async createCommands() {
+    console.log('create commands call')
+
+    if (!this.rest || !this.client?.user) {
+      console.log('return')
+      return
+    }
+
+
+    try {
+      await this.rest.put(
+        discord.Routes.applicationCommands(this.client.user.id),
+        {
+          body: this.commands
+        }
+      )
+
+      console.log(`custom slash commands (${this.commands.length}) registered.`)
+    } catch (e) {
+      console.log(`something went wrong when trying to create slash commands`, e)
+    }
+
   }
 
   greet(message: discord.Message<boolean>) {
