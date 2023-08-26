@@ -1,3 +1,4 @@
+import { LoggerService } from "../../logger/logger";
 import { Queue } from "../../common/queue/queue";
 import * as discordVoice from "@discordjs/voice";
 import * as discord from "discord.js";
@@ -8,9 +9,13 @@ export class Player {
   voiceConnection: discordVoice.VoiceConnection | null = null;
   audioPlayer: discordVoice.AudioPlayer | null = null;
   audioPlayerSubscription: discordVoice.PlayerSubscription | null = null;
+  private logger: LoggerService;
 
   constructor() {
+    this.logger = new LoggerService("Music Player", 3);
     this.queue = new Queue();
+
+    this.logger.log("player init");
   }
 
   pushNewVideoUrl(videoUrl: string) {

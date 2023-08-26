@@ -9,6 +9,7 @@ declare class Logger {
   public warn(message: string): void;
   public error(message: string): void;
   public error(message: Error): void;
+  public error(message: unknown): void;
   public log(message: string): void;
 }
 
@@ -29,6 +30,7 @@ export class LoggerService implements Logger {
 
   public error(message: string): void;
   public error(message: Error): void;
+  public error(message: unknown): void;
   public error(message: unknown): void {
     process.stdout.write(
       `\n${new Date()}    ${FgRed}ERROR ${FgYellow}[ ${

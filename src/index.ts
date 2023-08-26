@@ -8,6 +8,10 @@ process.on("uncaughtException", (reason) => {
   logger.error(reason);
 });
 
+process.on("unhandledRejection", (reason) => {
+  logger.error(reason);
+});
+
 dotenv.config();
 logger.log("dotenv config");
 
