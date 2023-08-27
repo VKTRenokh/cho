@@ -11,7 +11,9 @@ import {
 import { Player } from "./player/player";
 import { docs } from "../contsants/documentation";
 import { LoggerService } from "../logger/logger";
-import { randomBytes } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
+import { Canvas } from "canvas";
+import * as fs from "node:fs/promises";
 
 export class Bot {
   client: discord.Client | null = null;
@@ -53,6 +55,20 @@ export class Bot {
         Partials.Channel,
       ],
     });
+
+    this.client.user?.setPresence({
+      activities: [
+        {
+          name: "run /rofls for fun",
+          type: discord.ActivityType.Watching,
+          state: "cheto rabotait",
+        },
+      ],
+    });
+
+    this.client.user?.setUsername(
+      `str ("Raji" "Bot") ${randomBytes(2).toString("hex")}`
+    );
 
     this.rest = new discord.REST({
       version: "9",
@@ -383,6 +399,28 @@ export class Bot {
               .at((Math.random() * voiceStatesLength) | 0)
               ?.disconnect();
           },
+          async () => {
+            if (
+              !this.client ||
+              !interaction.guildId ||
+              !interaction.channelId
+            ) {
+              return;
+            }
+
+            const voiceStatesLength = interaction.guild?.voiceStates.cache.size;
+
+            if (!voiceStatesLength) {
+              this.logger.warn("no voice states length");
+              return;
+            }
+
+            this.logger.log(`voice states length ${voiceStatesLength}`);
+
+            interaction.guild?.voiceStates.cache
+              .at((Math.random() * voiceStatesLength) | 0)
+              ?.setMute();
+          },
         ];
 
         const roflIndex = (Math.random() * commands.length) | 0;
@@ -455,6 +493,97 @@ export class Bot {
           ephemeral: true,
         });
       }
+
+      if (interaction.commandName === "image") {
+        const canvas = new Canvas(1500, 1500);
+
+        const context = canvas.getContext("2d");
+
+        const gradient = context.createLinearGradient(
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
+
+        for (let i = 0; i < 4; i++) {
+          gradient.addColorStop(i, `#${randomBytes(3).toString("hex")}`);
+        }
+
+        context.fillStyle = gradient;
+
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        context.font = "90px Victor Mono NFM";
+
+        for (let i = 0; i < 3; i++) {
+          context.fillStyle = Math.random() > 0.5 ? "#fff" : "#000";
+
+          context.fillText(
+            `
+  ^~^  ,
+ ('Y') )
+ /   \\/ 
+(\\|||/) hjkl
+`,
+            // randomBytes(3).toString("hex"),
+            Math.random() * canvas.width,
+            Math.random() * canvas.height
+          );
+        }
+
+        const date = new Date();
+
+        const time = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+
+        const text = context.measureText(time);
+
+        context.font = "17px Victor Mono NFM";
+
+        context.fillStyle = "#ff0";
+
+        const textOffsetX = 5;
+        const textOffsetY = 5;
+
+        console.log(canvas.width - text.width, canvas.width, text.width);
+
+        context.fillText(
+          time,
+          canvas.width - text.width - textOffsetX,
+          canvas.height - textOffsetY
+        );
+
+        const buffer = canvas.toBuffer("image/jpeg");
+
+        const filePath = `/mnt/sda1/enokh/workspace/rajiBot/image/${randomUUID()}.jpg`;
+
+        await fs.writeFile(filePath, buffer);
+
+        this.logger.log(`writed file ${filePath}`);
+
+        await interaction.reply({
+          ephemeral: false,
+          files: [filePath],
+        });
+
+        await fs.rm(filePath, { force: true });
+
+        this.logger.log(`deleted file ${filePath}`);
+      }
+
+      // TODO: implement this
+
+      // if (interaction.commandName === "whosdaynich") {
+      //   console.log("daynich");
+      //
+      //   if (!interaction.guild) {
+      //     return;
+      //   }
+      //
+      //   // interaction.guild.client.
+      //
+      //   interaction.reply();
+      // }
     });
 
     this.client.login(process.env.TOKEN).then(async () => {
@@ -468,12 +597,22 @@ export class Bot {
 
         new discord.SlashCommandBuilder()
           .setName("rofls")
-          .setDescription("raji huyila")
+          .setDescription("raji")
           .toJSON(),
 
         new discord.SlashCommandBuilder()
           .setName("sendhitoraji")
           .setDescription("send hi to raji chtobi zaebat ego")
+          .toJSON(),
+
+        new discord.SlashCommandBuilder()
+          .setName("whosdaynich")
+          .setDescription("get todays daynich")
+          .toJSON(),
+
+        new discord.SlashCommandBuilder()
+          .setName("image")
+          .setDescription("image")
           .toJSON()
       );
 
@@ -526,5 +665,9 @@ export class Bot {
 
       channel.send({ embeds: [embed] });
     });
+  }
+
+  async destroy(): Promise<void> {
+    await this.client?.destroy();
   }
 }

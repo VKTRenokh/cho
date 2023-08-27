@@ -13,6 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "@discordjs/voice": "^0.16.0",
+    "canvas": "^2.11.2",
     "discord": "^0.8.2",
     "discord-api-types": "^0.37.48",
     "discord.js": "^14.11.0",

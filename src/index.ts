@@ -15,4 +15,11 @@ process.on("unhandledRejection", (reason) => {
 dotenv.config();
 logger.log("dotenv config");
 
-new Bot();
+const bot = new Bot();
+
+process.on("SIGINT", async () => {
+  logger.log("stopping app (SIGINT)");
+  await bot.destroy();
+  logger.log("app stopped");
+  process.exit();
+});

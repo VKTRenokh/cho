@@ -4,6 +4,7 @@ import { logLevel } from "../types/logLevel";
 declare class Logger {
   public logLevel: logLevel;
   public name: string;
+  public logFilePath?: string;
 
   public isLevelEnabled(level: logLevel): boolean;
   public warn(message: string): void;
@@ -14,7 +15,11 @@ declare class Logger {
 }
 
 export class LoggerService implements Logger {
-  constructor(public name: string, public logLevel: logLevel) {}
+  constructor(
+    public name: string,
+    public logLevel: logLevel,
+    public logFilePath?: string
+  ) {}
 
   isLevelEnabled(level: logLevel) {
     return level >= this.logLevel;
