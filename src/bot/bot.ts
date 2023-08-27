@@ -555,7 +555,9 @@ export class Bot {
 
         const buffer = canvas.toBuffer("image/jpeg");
 
-        const filePath = `/mnt/sda1/enokh/workspace/rajiBot/image/${randomUUID()}.jpg`;
+        const filePath = `${
+          process.env.IMAGE_DIRECTORY_PATH
+        }${randomUUID()}.jpg`;
 
         await fs.writeFile(filePath, buffer);
 
