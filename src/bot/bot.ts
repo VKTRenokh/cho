@@ -11,9 +11,7 @@ import {
 import { Player } from "./player/player";
 import { docs } from "../contsants/documentation";
 import { LoggerService } from "../logger/logger";
-import { randomBytes, randomUUID } from "node:crypto";
-import { Canvas } from "canvas";
-import * as fs from "node:fs/promises";
+import { randomBytes } from "node:crypto";
 
 export class Bot {
   client: discord.Client | null = null;
@@ -25,8 +23,9 @@ export class Bot {
   logger: LoggerService;
 
   constructor() {
-    this.logger = new LoggerService("Bot", 3);
     const start = performance.now();
+
+    this.logger = new LoggerService("Bot", 3);
 
     this.logger.log("bot init");
 
@@ -67,7 +66,7 @@ export class Bot {
     });
 
     this.client.user?.setUsername(
-      `str ("Raji" "Bot") ${randomBytes(2).toString("hex")}`
+      `str ("Raji" "Bot") ${randomBytes(2).toString("hex")}`,
     );
 
     this.rest = new discord.REST({
@@ -78,7 +77,7 @@ export class Bot {
       this.logger.log(
         `message create from ${message.author.bot ? "bot" : ""} ${
           message.author.displayName
-        } content ${message.content.trim()}`
+        } content ${message.content.trim()}`,
       );
 
       if (message.author.bot) {
@@ -91,71 +90,13 @@ export class Bot {
       }
 
       if (message.content.startsWith("!play")) {
-        this.logger.log("music play request");
-
-        const { voice } = message.member;
-
-        if (!voice.channelId) {
-          message.reply("you must join voice blyat ");
-          this.logger.warn(
-            `cant play music, no one is in voice channel (${voice.channelId})`
-          );
-          return;
-        }
-
-        if (!message.guild || !message.guildId) {
-          this.logger.warn("music play guild or guild id is null");
-          return;
-        }
-
-        const videoUrl = message.content.split(" ")[1];
-
-        if (!videoUrl) {
-          this.logger.warn("music play no video url");
-          const embed = new discord.EmbedBuilder()
-            .setTitle("nety link na vidos")
-            .setDescription("ya ne mogy igrat nichego")
-            .setColor(`#${randomBytes(3).toString("hex")}`)
-            .setImage(
-              "https://tenor.com/view/%D0%BD%D0%B5%D0%BF%D0%BE%D0%BD%D1%8F%D0%BB-homelander-gif-26367246"
-            );
-
-          message.reply({
-            embeds: [embed],
-          });
-          return;
-        }
-
-        this.player.pushNewVideoUrl(videoUrl);
-
-        if (!(message.channel instanceof discord.TextChannel)) {
-          return;
-        }
-
-        if (!this.player.queue.length) {
-          this.player.play(message.channel);
-        }
-
-        if (this.player.voiceConnection) {
-          return;
-        }
-
-        const connection = discordVoice.joinVoiceChannel({
-          channelId: voice.channelId,
-          guildId: message.guildId,
-          adapterCreator: message.guild.voiceAdapterCreator,
-        });
-
-        this.player.voiceConnection = connection;
-
-        this.player.play(message.channel);
       }
 
       if (message.content === "pls monke") {
         message.reply(
           Math.random() > 0.5
             ? "https://tenor.com/view/blacrswan-monkey-gif-20441402"
-            : "https://tenor.com/view/monkey-run-small-monkey-gif-24640775"
+            : "https://tenor.com/view/monkey-run-small-monkey-gif-24640775",
         );
       }
 
@@ -234,7 +175,7 @@ export class Bot {
       }
 
       this.logger.log(
-        `interaction chat input command (${interaction.commandName})`
+        `interaction chat input command (${interaction.commandName})`,
       );
 
       if (interaction.commandName === "pokezhmodal") {
@@ -250,7 +191,7 @@ export class Bot {
 
         const action =
           new discord.ActionRowBuilder<discord.TextInputBuilder>().setComponents(
-            textInput
+            textInput,
           );
 
         modal.setComponents(action);
@@ -436,7 +377,7 @@ export class Bot {
           });
         } catch (e) {
           this.logger.error(
-            `something went wrong when executing rofls command (${roflIndex}) ${e}`
+            `something went wrong when executing rofls command (${roflIndex}) ${e}`,
           );
         }
       }
@@ -495,82 +436,12 @@ export class Bot {
       }
 
       if (interaction.commandName === "image") {
-        const canvas = new Canvas(1500, 1500);
+        const buffer = this.ImageGenerator.drawCat(5000, 5000);
 
-        const context = canvas.getContext("2d");
-
-        const gradient = context.createLinearGradient(
-          0,
-          0,
-          canvas.width,
-          canvas.height
-        );
-
-        for (let i = 0; i < 4; i++) {
-          gradient.addColorStop(i, `#${randomBytes(3).toString("hex")}`);
-        }
-
-        context.fillStyle = gradient;
-
-        context.fillRect(0, 0, canvas.width, canvas.height);
-
-        context.font = "90px Victor Mono NFM";
-
-        for (let i = 0; i < 3; i++) {
-          context.fillStyle = Math.random() > 0.5 ? "#fff" : "#000";
-
-          context.fillText(
-            `
-  ^~^  ,
- ('Y') )
- /   \\/ 
-(\\|||/) hjkl
-`,
-            // randomBytes(3).toString("hex"),
-            Math.random() * canvas.width,
-            Math.random() * canvas.height
-          );
-        }
-
-        const date = new Date();
-
-        const time = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
-
-        const text = context.measureText(time);
-
-        context.font = "17px Victor Mono NFM";
-
-        context.fillStyle = "#ff0";
-
-        const textOffsetX = 5;
-        const textOffsetY = 5;
-
-        console.log(canvas.width - text.width, canvas.width, text.width);
-
-        context.fillText(
-          time,
-          canvas.width - text.width - textOffsetX,
-          canvas.height - textOffsetY
-        );
-
-        const buffer = canvas.toBuffer("image/jpeg");
-
-        const filePath = `${
-          process.env.IMAGE_DIRECTORY_PATH
-        }${randomUUID()}.jpg`;
-
-        await fs.writeFile(filePath, buffer);
-
-        this.logger.log(`writed file ${filePath}`);
-
-        await interaction.reply({
+        interaction.reply({
           ephemeral: false,
-          files: [filePath],
+          files: [buffer],
         });
-
-        await fs.rm(filePath, { force: true });
-
-        this.logger.log(`deleted file ${filePath}`);
       }
 
       // TODO: implement this
@@ -615,7 +486,7 @@ export class Bot {
         new discord.SlashCommandBuilder()
           .setName("image")
           .setDescription("image")
-          .toJSON()
+          .toJSON(),
       );
 
       await this.createCommands();
@@ -636,15 +507,15 @@ export class Bot {
         discord.Routes.applicationCommands(this.client.user.id),
         {
           body: this.commands,
-        }
+        },
       );
 
       this.logger.log(
-        `custom slash commands (${this.commands.length}) registered.`
+        `custom slash commands (${this.commands.length}) registered.`,
       );
     } catch (e) {
       this.logger.error(
-        `something went wrong when trying to create slash commands ${e}`
+        `something went wrong when trying to create slash commands ${e}`,
       );
     }
   }
@@ -662,7 +533,7 @@ export class Bot {
       const embed = new discord.EmbedBuilder()
         .setTitle(doc.commandName)
         .setDescription(
-          `${doc.desc}\n\n arguments count ${doc.args.length} ${argsStr}`
+          `${doc.desc}\n\n arguments count ${doc.args.length} ${argsStr}`,
         );
 
       channel.send({ embeds: [embed] });

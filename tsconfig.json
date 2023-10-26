@@ -20,11 +20,17 @@
     "isolatedModules": false,
     "allowImportingTsExtensions": true,
     "noFallthroughCasesInSwitch": true,
-    "paths": {
-      "@/*": ["./src/*"]
-    }
+    "types": [
+      "bun-types"
+    ]
   },
-  "include": ["src/**/*.ts", "src/**/*.js", "custom.d.ts"],
-  "exclude": ["node_modules"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.js",
+    "custom.d.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
   "compileOnSave": false
 }

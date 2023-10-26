@@ -5,3 +5,18 @@ export const animeGreetingGifUrl =
 export const legendaryRajiSlideId = "1125531659186491432";
 export const legendaryServerId = "1125531614903009330";
 export const legendaryChannelId = "1125531615481839658";
+
+export const cats = [
+  `
+  ^~^  ,
+ ('Y') )
+ /   \\/ 
+(\\|||/) hjkl
+`,
+  `
+  |\\'/-..--.
+ / _ _   ,  ;
+\`~=\`Y'~_<._./
+ <\`-....__.'
+`,
+] as const;
