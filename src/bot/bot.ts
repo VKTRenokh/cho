@@ -80,56 +80,8 @@ export class Bot {
         } content ${message.content.trim()}`,
       );
 
-      if (message.author.bot) {
+      if (message.author.bot || !message.member) {
         return;
-      }
-
-      if (!message.member) {
-        this.logger.warn("no message member");
-        return;
-      }
-
-      if (message.content.startsWith("!play")) {
-      }
-
-      if (message.content === "pls monke") {
-        message.reply(
-          Math.random() > 0.5
-            ? "https://tenor.com/view/blacrswan-monkey-gif-20441402"
-            : "https://tenor.com/view/monkey-run-small-monkey-gif-24640775",
-        );
-      }
-
-      if (
-        this.client &&
-        this.client.application &&
-        this.client.application.id &&
-        message.mentions.has(this.client.application.id) &&
-        message.content.includes("hi")
-      ) {
-        this.greet(message);
-      }
-
-      if (message.content === "!clear") {
-        this.player.clear();
-        return;
-      }
-
-      if (message.content === "!skip") {
-        if (!(message.channel instanceof discord.TextChannel)) {
-          return;
-        }
-
-        this.player.skip(message.channel);
-        return;
-      }
-
-      if (message.content === "!pause") {
-        this.player.pause();
-      }
-
-      if (message.content === "!unpause") {
-        this.player.unpause();
       }
 
       if (message.content === "!docs") {
@@ -138,10 +90,6 @@ export class Bot {
         }
 
         this.sendDocs(message.channel);
-        return;
-      }
-
-      if (message.author.id !== rajiId) {
         return;
       }
 
@@ -407,7 +355,6 @@ export class Bot {
         const stickers = await this.client.fetchPremiumStickerPacks();
 
         const stickerPack = stickers.get("847201503668207738");
-        console.log(stickerPack);
 
         if (!stickerPack) {
           this.logger.warn("no sticker pack");
@@ -434,29 +381,6 @@ export class Bot {
           ephemeral: true,
         });
       }
-
-      if (interaction.commandName === "image") {
-        const buffer = this.ImageGenerator.drawCat(5000, 5000);
-
-        interaction.reply({
-          ephemeral: false,
-          files: [buffer],
-        });
-      }
-
-      // TODO: implement this
-
-      // if (interaction.commandName === "whosdaynich") {
-      //   console.log("daynich");
-      //
-      //   if (!interaction.guild) {
-      //     return;
-      //   }
-      //
-      //   // interaction.guild.client.
-      //
-      //   interaction.reply();
-      // }
     });
 
     this.client.login(process.env.TOKEN).then(async () => {
@@ -476,16 +400,6 @@ export class Bot {
         new discord.SlashCommandBuilder()
           .setName("sendhitoraji")
           .setDescription("send hi to raji chtobi zaebat ego")
-          .toJSON(),
-
-        new discord.SlashCommandBuilder()
-          .setName("whosdaynich")
-          .setDescription("get todays daynich")
-          .toJSON(),
-
-        new discord.SlashCommandBuilder()
-          .setName("image")
-          .setDescription("image")
           .toJSON(),
       );
 
