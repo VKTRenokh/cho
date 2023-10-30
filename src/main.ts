@@ -1,8 +1,22 @@
 import { Bot } from "./bot/bot";
+import { commands } from "./bot/commands/commands";
+import { LoggerService } from "./logger/logger";
 
-const bot = new Bot();
+const main = (): void => {
+  const logger = new LoggerService("App");
 
-process.on("SIGINT", async () => {
-  await bot.destroy();
-  process.exit();
-});
+  if (!Bun.env.TOKEN) {
+    logger.error("no token");
+
+    return;
+  }
+
+  const bot = new Bot(Bun.env.TOKEN, commands);
+
+  process.on("SIGINT", async () => {
+    await bot.destroy();
+    process.exit();
+  });
+};
+
+main();

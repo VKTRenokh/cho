@@ -20,6 +20,7 @@
     "isolatedModules": false,
     "allowImportingTsExtensions": true,
     "noFallthroughCasesInSwitch": true,
+    "baseUrl": "./",
     "types": [
       "bun-types"
     ]

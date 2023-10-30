@@ -1,3 +1,5 @@
+import { GatewayIntentBits, Partials } from "discord.js";
+
 export const rajiId = "282509088875872258";
 export const musicPath = "/mnt/sda1/enokh/workspace/rajiBot/";
 export const animeGreetingGifUrl =
@@ -21,3 +23,24 @@ export const cats = [
  <\`-....__.'
 `,
 ] as const;
+
+export const intents = [
+  GatewayIntentBits.DirectMessages,
+  GatewayIntentBits.Guilds,
+  GatewayIntentBits.GuildMessages,
+  GatewayIntentBits.MessageContent,
+  GatewayIntentBits.GuildMessageReactions,
+  GatewayIntentBits.GuildEmojisAndStickers,
+  GatewayIntentBits.GuildVoiceStates,
+  GatewayIntentBits.GuildInvites,
+];
+
+export const partials = [
+  Partials.Message,
+  Partials.Reaction,
+  Partials.GuildMember,
+  Partials.Channel,
+];
+
+export const chocoStickerPackId = "847201503668207738";
+export const chocoHelloStickerId = "781291131828699156";
