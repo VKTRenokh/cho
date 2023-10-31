@@ -1,9 +1,9 @@
 import {
-  RESTPostAPIChatInputApplicationCommandsJSONBody,
+  type RESTPostAPIChatInputApplicationCommandsJSONBody,
   type ChatInputCommandInteraction,
   type CacheType,
-  Client,
-} from "discord.js";
+  type Client,
+} from 'discord.js'
 
 export class Command {
   constructor(
@@ -11,13 +11,13 @@ export class Command {
     private handler: (
       interaction: ChatInputCommandInteraction<CacheType>,
       client: Client,
-    ) => void,
+    ) => Promise<void> | void,
   ) {}
 
-  public run(
+  public async run(
     interaction: ChatInputCommandInteraction<CacheType>,
     client: Client,
   ) {
-    this.handler(interaction, client);
+    await this.handler(interaction, client)
   }
 }

@@ -1,4 +1,9 @@
 {
+  "ts-node": {
+    "require": [
+      "./node_modules/tsconfig-paths/register.js"
+    ]
+  },
   "compilerOptions": {
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,

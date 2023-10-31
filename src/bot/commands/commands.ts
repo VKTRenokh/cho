@@ -57,9 +57,13 @@ commands.set(
           )
 
         interaction.reply({ ephemeral: true, content: 'hi was send' })
+
+        throw new Error('dfafsdf')
       } catch (e) {
-        logger.error(e)
+        logger.error(`error occured with sendhi: ${e}`)
       }
     },
   ),
 )
+
+logger.log('init')
