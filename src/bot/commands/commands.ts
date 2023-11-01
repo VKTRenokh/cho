@@ -10,6 +10,14 @@ import {
 } from 'src/contsants/constants.ts'
 import { LoggerService } from 'src/logger/logger.ts'
 
+export class Commands {
+  private logger = new LoggerService('Commands')
+
+  constructor() {
+    this.logger.log('init')
+  }
+}
+
 const logger = new LoggerService('Commands')
 export const commands = new Map<string, Command>()
 
@@ -57,12 +65,21 @@ commands.set(
           )
 
         interaction.reply({ ephemeral: true, content: 'hi was send' })
-
-        throw new Error('dfafsdf')
       } catch (e) {
         logger.error(`error occured with sendhi: ${e}`)
       }
     },
+  ),
+)
+
+commands.set(
+  'votebogdanwake',
+  new Command(
+    new SlashCommandBuilder()
+      .setName('votebogdanwake')
+      .setDescription('vote when bogdan gonna wake')
+      .toJSON(),
+    (inter) => {},
   ),
 )
 

@@ -5,10 +5,11 @@ import voice, {
 } from '@discordjs/voice'
 import { maybe } from 'src/monads/maybe/maybe'
 import * as pdl from 'play-dl'
-import { EmbedBuilder, Message } from 'discord.js'
+import { Message } from 'discord.js'
 import { LoggerService } from 'src/logger/logger'
 import { GuildMember } from 'discord.js'
 import { Maybe } from 'src/monads/maybe/types/maybe'
+import { playing } from 'src/contsants/player-reply'
 
 export class MusicPlayer {
   private voiceState = maybe<voice.VoiceConnection>(null)
@@ -17,17 +18,26 @@ export class MusicPlayer {
   private logger = new LoggerService('Music Player')
 
   public commands = new Map<string, (message: Message<boolean>) => void>([
-    ['play', (message) => this.play(message, message.content.split(' ')[1])],
+    [
+      'play',
+      (message) =>
+        this.play(message, maybe(message.content.split(' ')[1] ?? null)),
+    ],
     ['pause', () => this.pause()],
     ['unpause', () => this.unpause()],
+    ['stop', () => this.stop()],
   ])
 
   constructor() {
     this.logger.log('init')
   }
 
-  private pause() {
+  private stop() {
     this.audioPlayer.map((player) => player.stop())
+  }
+
+  private pause() {
+    this.audioPlayer.map((player) => player.pause())
   }
 
   private unpause() {
@@ -62,38 +72,30 @@ export class MusicPlayer {
     return createAudioResource(video.stream)
   }
 
-  private play(message: Message<boolean>, url: string) {
-    this.logger.log(`play try ${url}`)
+  private play(message: Message<boolean>, url: Maybe<string>) {
+    this.logger.log(`play try ${url.getOrElse('no url')}`)
 
     const member = maybe(message.member)
 
     const voiceId = member.map((m) => m.voice.channelId).fmap(maybe)
 
-    this.voiceState = this.createVoiceState(member, voiceId)
+    this.voiceState = url.fmap(() => this.createVoiceState(member, voiceId))
 
     this.audioPlayer = this.createAudioPlayer(this.voiceState)
 
-    this.audioPlayer.asyncMap(async (player) => {
+    this.audioPlayer.merge(url).asyncMap(async (merged) => {
       try {
-        const resource = await this.createAudioResource(url)
+        const resource = await this.createAudioResource(merged[1])
 
-        player.play(resource)
+        merged[0].play(resource)
 
         message.reply({
-          embeds: [
-            new EmbedBuilder()
-              .setTitle('DA YA IGRAYU HERNYU TVOYU')
-              .setColor('Blurple')
-              .setDescription('playing your shitty music')
-              .setImage(
-                'http://trespedros.com/wp-content/uploads/2018/08/Black-Iron-Steel-Pipes.jpg',
-              ),
-          ],
+          embeds: [playing],
         })
 
-        this.logger.log(`playing ${url}`)
+        this.logger.log(`playing ${merged[1]}`)
       } catch (e) {
-        console.log(e)
+        this.logger.error(`error occured while trying to play ${e}`)
       }
     })
   }
