@@ -10,11 +10,18 @@ const main = (): void => {
 
   if (!process.env.TOKEN) {
     logger.error('no token')
-
     return
   }
 
   const bot = new Bot(process.env.TOKEN, commands)
+
+  process.on('uncaughtException', (e) => {
+    logger.log(`uncaughtException: ${e}`)
+  })
+
+  process.on('unhandledRejection', (e) => {
+    logger.log(`unhandledRejection: ${e}`)
+  })
 
   process.on('SIGINT', async () => {
     await bot.destroy()
