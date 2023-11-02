@@ -9,6 +9,7 @@ import {
   legendaryRajiSlideId,
 } from 'src/contsants/constants.ts'
 import { LoggerService } from 'src/logger/logger.ts'
+import { getGuildMembers } from 'src/utils/getGuildMembers.ts'
 
 export class Commands {
   private logger = new LoggerService('Commands')
@@ -80,6 +81,35 @@ commands.set(
       .setDescription('vote when bogdan gonna wake')
       .toJSON(),
     (inter) => {},
+  ),
+)
+
+commands.set(
+  'setnicknameall',
+  new Command(
+    new SlashCommandBuilder()
+      .setName('setnicknameall')
+      .setDescription('set nickname for all people on this server')
+      .addStringOption((option) =>
+        option.setName('nickname').setDescription('nickname to set'),
+      )
+      .toJSON(),
+    async (interaction) => {
+      const option = maybe(interaction.options.get('nickname'))
+
+      const value = option
+        .map((option) => option.value ?? null)
+        .fmap(maybe)
+        .map((value) => value.toString())
+
+      const members = await getGuildMembers(maybe(interaction.guild))
+
+      members.merge(value).map((merged) => {
+        merged[0].forEach((member) => member.edit({ nick: merged[1] }))
+
+        interaction.reply({ content: 'changed nicknames', ephemeral: true })
+      })
+    },
   ),
 )
 

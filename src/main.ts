@@ -16,11 +16,11 @@ const main = (): void => {
   const bot = new Bot(process.env.TOKEN, commands)
 
   process.on('uncaughtException', (e) => {
-    logger.log(`uncaughtException: ${e}`)
+    logger.warn(`uncaughtException: ${e}`)
   })
 
   process.on('unhandledRejection', (e) => {
-    logger.log(`unhandledRejection: ${e}`)
+    logger.warn(`unhandledRejection: ${e}`)
   })
 
   process.on('SIGINT', async () => {
