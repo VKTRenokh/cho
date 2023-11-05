@@ -45,3 +45,6 @@ export const partials = [
 
 export const chocoStickerPackId = '847201503668207738'
 export const chocoHelloStickerId = '781291131828699156'
+
+export const maxKickNum = 1_000_000
+export const kickNum = 845
