@@ -36,17 +36,6 @@ commands.set(
 )
 
 commands.set(
-  'votebogdanwake',
-  new Command(
-    new SlashCommandBuilder()
-      .setName('votebogdanwake')
-      .setDescription('vote when bogdan gonna wake')
-      .toJSON(),
-    () => {},
-  ),
-)
-
-commands.set(
   'setnicknameall',
   new Command(
     new SlashCommandBuilder()

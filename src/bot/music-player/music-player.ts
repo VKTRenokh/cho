@@ -1,4 +1,5 @@
 import voice, {
+  AudioPlayerStatus,
   createAudioPlayer,
   createAudioResource,
   joinVoiceChannel,
@@ -7,7 +8,7 @@ import { maybe } from 'src/monads/maybe/maybe'
 import * as pdl from 'play-dl'
 import { Message } from 'discord.js'
 import { LoggerService } from 'src/logger/logger'
-import { GuildMember } from 'discord.js'
+import { Guild } from 'discord.js'
 import { Maybe } from 'src/monads/maybe/types/maybe'
 import { playing } from 'src/contsants/player-reply'
 
@@ -16,6 +17,7 @@ export class MusicPlayer {
   private audioPlayer = maybe<voice.AudioPlayer>(null)
   private subscription = maybe<voice.PlayerSubscription>(null)
   private logger = new LoggerService('Music Player')
+  public onEnd = maybe<() => void>(null)
 
   public commands = new Map<string, (message: Message<boolean>) => void>([
     [
@@ -44,14 +46,14 @@ export class MusicPlayer {
     this.audioPlayer.map((player) => player.unpause())
   }
 
-  private createVoiceState(member: Maybe<GuildMember>, voiceId: Maybe<string>) {
-    return member.merge(voiceId).map((merged) => {
-      return joinVoiceChannel({
-        guildId: merged[0].guild.id,
+  private createVoiceState(guild: Maybe<Guild>, voiceId: Maybe<string>) {
+    return guild.merge(voiceId).map((merged) =>
+      joinVoiceChannel({
+        guildId: merged[0].id,
         channelId: merged[1],
-        adapterCreator: merged[0].guild.voiceAdapterCreator,
-      })
-    })
+        adapterCreator: merged[0].voiceAdapterCreator,
+      }),
+    )
   }
 
   private createAudioPlayer(voiceState: Maybe<voice.VoiceConnection>) {
@@ -72,14 +74,16 @@ export class MusicPlayer {
     return createAudioResource(video.stream)
   }
 
-  private play(message: Message<boolean>, url: Maybe<string>) {
+  private play(message: Message<boolean>, url: Maybe<string>): void {
     this.logger.log(`play try ${url.getOrElse('no url')}`)
 
     const member = maybe(message.member)
 
+    const guild = member.map((m) => m.guild)
+
     const voiceId = member.map((m) => m.voice.channelId).fmap(maybe)
 
-    this.voiceState = url.fmap(() => this.createVoiceState(member, voiceId))
+    this.voiceState = url.fmap(() => this.createVoiceState(guild, voiceId))
 
     this.audioPlayer = this.createAudioPlayer(this.voiceState)
 
@@ -89,7 +93,7 @@ export class MusicPlayer {
 
         merged[0].play(resource)
 
-        message.reply({
+        message?.reply({
           embeds: [playing],
         })
 
@@ -97,6 +101,30 @@ export class MusicPlayer {
       } catch (e) {
         this.logger.error(`error occured while trying to play ${e}`)
       }
+    })
+  }
+
+  public silentPlay(
+    guild: Maybe<Guild>,
+    voiceId: Maybe<string>,
+    url: string,
+  ): void {
+    this.voiceState = this.createVoiceState(guild, voiceId)
+
+    this.audioPlayer = this.createAudioPlayer(this.voiceState)
+
+    this.audioPlayer.asyncMap(async (player) => {
+      const resource = await this.createAudioResource(url)
+
+      player.play(resource)
+
+      player.on('stateChange', (_, state) => {
+        if (state.status === AudioPlayerStatus.Idle) {
+          this.onEnd.map((fn) => fn())
+        }
+      })
+
+      this.logger.log(`silent playing ${url}`)
     })
   }
 

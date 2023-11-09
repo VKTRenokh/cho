@@ -6,7 +6,7 @@ import { maybe } from 'src/monads/maybe/maybe'
 export const getRandomMember = (
   members: Maybe<Collection<string, GuildMember>>,
 ): Maybe<GuildMember> => {
-  return members
-    .map((members) => members.at(randomInt(members.size)) ?? null)
-    .fmap(maybe)
+  return members.fmap((members) =>
+    maybe(members.at(randomInt(members.size)) ?? null),
+  )
 }
