@@ -1,65 +1,63 @@
-import * as discord from 'discord.js'
+import { Client, REST, ClientUser, Events, Routes } from 'discord.js'
 import { LoggerService } from '../logger/logger'
 import { randomBytes } from 'node:crypto'
-import { maybe } from 'src/monads/maybe/maybe'
+import { maybe } from 'src/utils/maybe'
 import { intents, partials } from 'src/contsants/constants'
-import { Command } from './commands/command'
 import { MusicPlayer } from './music-player/music-player'
+import { Commands } from './commands/commands'
+import { splitWithModifier } from 'src/utils/splitWithModifier'
 
 export class Bot {
-  private client: discord.Client
+  private client: Client
   private player = new MusicPlayer()
-  private rest: discord.REST
-  private user = maybe<discord.ClientUser>(null)
+  private rest: REST
+  private user = maybe<ClientUser>(null)
   private logger = new LoggerService('Bot')
+  private commands = new Commands()
+  private readonly playerModifier = 'e!'
 
-  constructor(
-    token: string,
-    private commands: Map<string, Command>,
-  ) {
+  constructor(token: string) {
     this.logger.log('init')
 
-    this.client = new discord.Client({
+    this.client = new Client({
       intents,
       partials,
     })
 
-    this.rest = new discord.REST({ version: '9' }).setToken(token)
+    this.rest = new REST({ version: '9' }).setToken(token)
 
     this.login(token)
   }
 
   private initHandlers() {
-    this.client.on(discord.Events.InteractionCreate, async (interaction) => {
+    this.client.on(Events.InteractionCreate, async (interaction) => {
       if (!interaction.isChatInputCommand()) {
         return
       }
 
-      const command = maybe(this.commands.get(interaction.commandName) ?? null)
+      const command = this.commands.getCommand(interaction.commandName)
 
       await command.asyncMap(async (c) => await c.run(interaction, this.client))
     })
 
     this.client.on('messageCreate', (message) => {
-      if (!message.content.startsWith('e!')) {
+      if (!message.content.startsWith(this.playerModifier)) {
         return
       }
 
-      const command = maybe(
-        this.player.commands.get(
-          message.content.slice(message.content.indexOf('!') + 1).split(' ')[0],
-        ) ?? null,
-      )
+      const splitted = splitWithModifier(message.content, '!')
 
-      command.map((c) => c(message))
+      const command = this.player.getCommand(splitted[0])
+
+      command.map((fn) => fn(message))
     })
 
     this.logger.log('handlers inited')
   }
 
   private async putCommands(id: string) {
-    await this.rest.put(discord.Routes.applicationCommands(id), {
-      body: Array.from(this.commands, (v) => v[1].discordCommand),
+    await this.rest.put(Routes.applicationCommands(id), {
+      body: this.commands.getCommandsJson,
     })
   }
 

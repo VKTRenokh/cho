@@ -4,12 +4,12 @@ import voice, {
   createAudioResource,
   joinVoiceChannel,
 } from '@discordjs/voice'
-import { maybe } from 'src/monads/maybe/maybe'
+import { maybe } from 'src/utils/maybe'
 import * as pdl from 'play-dl'
 import { Message } from 'discord.js'
 import { LoggerService } from 'src/logger/logger'
 import { Guild } from 'discord.js'
-import { Maybe } from 'src/monads/maybe/types/maybe'
+import { Maybe } from 'src/utils/types/maybe'
 import { playing } from 'src/contsants/player-reply'
 
 export class MusicPlayer {
@@ -19,7 +19,7 @@ export class MusicPlayer {
   private logger = new LoggerService('Music Player')
   public onEnd = maybe<() => void>(null)
 
-  public commands = new Map<string, (message: Message<boolean>) => void>([
+  private commands = new Map<string, (message: Message<boolean>) => void>([
     [
       'play',
       (message) =>
@@ -32,6 +32,10 @@ export class MusicPlayer {
 
   constructor() {
     this.logger.log('init')
+  }
+
+  public getCommand(key: string) {
+    return maybe(this.commands.get(key) ?? null)
   }
 
   private stop() {

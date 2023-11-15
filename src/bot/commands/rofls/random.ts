@@ -1,11 +1,12 @@
-import { Maybe } from 'src/monads/maybe/types/maybe'
 import { CacheType, ChatInputCommandInteraction, Guild } from 'discord.js'
 import { getGuildMembers } from 'src/utils/getGuildMembers'
 import { getRandomMember } from 'src/utils/getRandomMember'
-import { randomBytes } from 'node:crypto'
-import { maybe } from 'src/monads/maybe/maybe'
+import { randomBytes, randomInt } from 'node:crypto'
 import { getRandomVoiceState } from 'src/utils/getRandomVoiceState'
 import { MusicPlayer } from 'src/bot/music-player/music-player'
+import { Maybe } from 'src/utils/types/maybe'
+import { maybe } from 'src/utils/maybe'
+import { musicUrls } from 'src/contsants/rofls'
 
 export type Random = (
   guild: Maybe<Guild>,
@@ -56,11 +57,7 @@ export const random: Random[] = [
 
     const player = new MusicPlayer()
 
-    player.silentPlay(
-      guild,
-      channelId,
-      'https://www.youtube.com/watch?v=lr4vi_XAjQQ',
-    )
+    player.silentPlay(guild, channelId, musicUrls[randomInt(musicUrls.length)])
 
     player.onEnd = maybe(() => {
       player.destroy()

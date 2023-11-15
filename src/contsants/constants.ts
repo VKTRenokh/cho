@@ -1,8 +1,6 @@
 import { GatewayIntentBits, Partials } from 'discord.js'
 
 export const rajiId = '282509088875872258'
-export const animeGreetingGifUrl =
-  'https://tenor.com/view/eromanga-sensei-hitorigoto-sagiri-eromangasensei-gif-20403999'
 export const legendaryRajiSlideId = '1167159653369647155'
 export const legendaryServerId = '1125531614903009330'
 export const legendaryChannelId = '1125531615481839658'

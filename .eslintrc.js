@@ -17,8 +17,7 @@ module.exports = {
     '@typescript-eslint/interface-name-prefix': 'off',
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
-    '@typescript-eslint/no-explicit-any': 'off',
-    '@typescript-eslint/semi': 'off',
+    '@typescript-eslint/semi': ['error', 'never'],
     '@typescript-eslint/explicit-member-accessibility': [
       'error',
       {
@@ -48,7 +47,7 @@ module.exports = {
       'error',
       'always',
       {
-        markers: ['!', '?', '//', 'todo', '*'],
+        markers: ['!', '?', ' //', 'todo', '*'],
       },
     ],
     'block-spacing': ['warn', 'always'],

@@ -9,7 +9,7 @@
     "allowSyntheticDefaultImports": true,
     "useUnknownInCatchVariables": false,
     "useDefineForClassFields": true,
-    "allowJs": true,
+    "allowJs": false,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "rootDir": "src",

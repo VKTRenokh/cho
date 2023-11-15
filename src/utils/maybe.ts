@@ -1,4 +1,4 @@
-import { type Maybe } from 'src/monads/maybe/types/maybe'
+import { type Maybe } from './types/maybe.ts'
 
 export const maybe = <T>(value: T | null): Maybe<T> => ({
   map: <R>(fn: (_: T) => R) => (value ? maybe<R>(fn(value)) : maybe<R>(null)),

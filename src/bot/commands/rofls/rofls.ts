@@ -1,9 +1,9 @@
 import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { LoggerService } from 'src/logger/logger'
 import { random } from './random'
-import { maybe } from 'src/monads/maybe/maybe'
 import { maybeKick } from './maybeKick'
 import { randomInt } from 'node:crypto'
+import { maybe } from 'src/utils/maybe'
 
 export const rofls = async (
   interaction: ChatInputCommandInteraction<CacheType>,

@@ -1,6 +1,6 @@
-import { Maybe } from 'src/monads/maybe/types/maybe'
 import { Guild } from 'discord.js'
-import { maybe } from 'src/monads/maybe/maybe'
+import { Maybe } from './types/maybe'
+import { maybe } from './maybe'
 
 export const getRandomVoiceState = (guild: Maybe<Guild>) => {
   return guild.fmap((guild) =>
