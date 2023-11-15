@@ -57,7 +57,7 @@ export class Bot {
 
   private async putCommands(id: string) {
     await this.rest.put(Routes.applicationCommands(id), {
-      body: this.commands.getCommandsJson,
+      body: this.commands.getCommandsJson(),
     })
   }
 
