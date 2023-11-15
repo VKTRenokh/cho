@@ -6,8 +6,8 @@ import {
   legendaryRajiSlideId,
 } from 'src/contsants/constants'
 import { LoggerService } from 'src/logger/logger'
-import { maybe } from 'src/monads/maybe/maybe'
 import { getMessage } from 'src/utils/getMessage'
+import { maybe } from 'src/utils/maybe'
 
 export const sendhi = async (
   interaction: ChatInputCommandInteraction<CacheType>,

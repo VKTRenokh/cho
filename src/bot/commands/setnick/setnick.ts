@@ -1,6 +1,6 @@
 import { CacheType, ChatInputCommandInteraction } from 'discord.js'
-import { maybe } from 'src/monads/maybe/maybe'
 import { getGuildMembers } from 'src/utils/getGuildMembers'
+import { maybe } from 'src/utils/maybe'
 
 export const setnick = async (
   interaction: ChatInputCommandInteraction<CacheType>,

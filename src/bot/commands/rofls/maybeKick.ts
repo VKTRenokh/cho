@@ -2,7 +2,7 @@ import { ChatInputCommandInteraction } from 'discord.js'
 import { LoggerService } from 'src/logger/logger'
 import { randomInt } from 'node:crypto'
 import { kickNum, maxKickNum } from 'src/contsants/constants'
-import { maybe } from 'src/monads/maybe/maybe'
+import { maybe } from 'src/utils/maybe'
 
 export const maybeKick = async (
   interaction: ChatInputCommandInteraction,

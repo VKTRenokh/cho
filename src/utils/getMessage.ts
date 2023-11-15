@@ -1,7 +1,7 @@
-import { Maybe } from 'src/monads/maybe/types/maybe'
 import { type Guild, type Message } from 'discord.js'
-import { maybe } from 'src/monads/maybe/maybe'
 import { getChannel } from './getChannel'
+import { Maybe } from './types/maybe'
+import { maybe } from './maybe'
 
 export const getMessage = async (
   guild: Maybe<Guild>,
