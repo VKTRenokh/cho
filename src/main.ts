@@ -1,6 +1,5 @@
 import { configDotenv } from 'dotenv'
 import { Bot } from './bot/bot'
-import { commands } from './bot/commands/commands'
 import { LoggerService } from './logger/logger'
 
 const main = (): void => {
@@ -13,7 +12,7 @@ const main = (): void => {
     return
   }
 
-  const bot = new Bot(process.env.TOKEN, commands)
+  const bot = new Bot(process.env.TOKEN)
 
   process.on('uncaughtException', (e) => {
     logger.warn(`uncaughtException: ${e}`)
