@@ -11,6 +11,7 @@ import { LoggerService } from 'src/logger/logger'
 import { Guild } from 'discord.js'
 import { Maybe } from 'src/utils/types/maybe'
 import { playing } from 'src/contsants/player-reply'
+import { disconnectTimeout } from 'src/contsants/constants'
 
 export class MusicPlayer {
   private voiceState = maybe<voice.VoiceConnection>(null)
@@ -102,10 +103,25 @@ export class MusicPlayer {
         })
 
         this.logger.log(`playing ${merged[1]}`)
+
+        merged[0].on('stateChange', (state) => {
+          if (state.status !== AudioPlayerStatus.Idle) {
+            return
+          }
+
+          this.disconectOnIdle(disconnectTimeout)
+        })
       } catch (e) {
         this.logger.error(`error occured while trying to play ${e}`)
       }
     })
+  }
+
+  private disconectOnIdle(timeout: number) {
+    setTimeout(() => {
+      this.stop()
+      this.subscription.map((s) => s.unsubscribe())
+    }, timeout)
   }
 
   public silentPlay(
