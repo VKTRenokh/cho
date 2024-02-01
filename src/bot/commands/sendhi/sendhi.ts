@@ -31,7 +31,7 @@ export const sendhi = async (
 
     await sticker
       .merge(message)
-      .asyncMap(([sticker, message]) => message.reply({ stickers: [sticker] }))
+      .asyncMap((maybes) => maybes.right.reply({ stickers: [maybes.left] }))
 
     interaction.reply({ ephemeral: true, content: 'hi was send' })
   } catch (e) {

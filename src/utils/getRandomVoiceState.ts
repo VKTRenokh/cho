@@ -1,6 +1,5 @@
 import { Guild } from 'discord.js'
-import { Maybe } from './types/maybe'
-import { maybe } from './maybe'
+import { Maybe, maybe } from './maybe'
 
 export const getRandomVoiceState = (guild: Maybe<Guild>) => {
   return guild.fmap((guild) =>

@@ -1,7 +1,6 @@
 import { Collection, GuildMember } from 'discord.js'
 import { randomInt } from 'node:crypto'
-import { Maybe } from './types/maybe'
-import { maybe } from './maybe'
+import { Maybe, maybe } from './maybe'
 
 export const getRandomMember = (
   members: Maybe<Collection<string, GuildMember>>,

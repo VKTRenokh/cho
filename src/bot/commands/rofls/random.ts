@@ -4,8 +4,7 @@ import { getRandomMember } from 'src/utils/getRandomMember'
 import { randomBytes, randomInt } from 'node:crypto'
 import { getRandomVoiceState } from 'src/utils/getRandomVoiceState'
 import { MusicPlayer } from 'src/bot/music-player/music-player'
-import { Maybe } from 'src/utils/types/maybe'
-import { maybe } from 'src/utils/maybe'
+import { Maybe, maybe, mergeMap } from 'src/utils/maybe'
 import { musicUrls } from 'src/contsants/rofls'
 
 export type Random = (
@@ -35,10 +34,8 @@ export const random: Random[] = [
       .map((member) => member.nickname)
       .fmap(maybe)
 
-    nickname.merge(guild).map((merged) => {
-      merged[1].edit({
-        name: merged[0],
-      })
+    mergeMap(nickname, guild, (nickname, guild) => {
+      guild.edit({ name: nickname })
     })
   },
   async (guild) => {

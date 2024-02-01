@@ -1,5 +1,5 @@
 import { Guild, Collection, GuildMember } from 'discord.js'
-import { Maybe } from './types/maybe'
+import { Maybe } from './maybe'
 
 export const getGuildMembers = async (
   guild: Maybe<Guild>,

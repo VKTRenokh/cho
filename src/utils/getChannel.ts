@@ -1,6 +1,5 @@
 import { type Guild } from 'discord.js'
-import { maybe } from './maybe'
-import { Maybe } from './types/maybe'
+import { Maybe, maybe } from './maybe'
 
 export const getChannel = async (guild: Maybe<Guild>, channelId: string) => {
   return (

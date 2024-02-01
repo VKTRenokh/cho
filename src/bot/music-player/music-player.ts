@@ -4,12 +4,11 @@ import voice, {
   createAudioResource,
   joinVoiceChannel,
 } from '@discordjs/voice'
-import { maybe } from 'src/utils/maybe'
+import { Maybe, maybe, mergeMap } from 'src/utils/maybe'
 import * as pdl from 'play-dl'
 import { Message } from 'discord.js'
 import { LoggerService } from 'src/logger/logger'
 import { Guild } from 'discord.js'
-import { Maybe } from 'src/utils/types/maybe'
 import { playing } from 'src/contsants/player-reply'
 import { disconnectTimeout } from 'src/contsants/constants'
 
@@ -52,11 +51,11 @@ export class MusicPlayer {
   }
 
   private createVoiceState(guild: Maybe<Guild>, voiceId: Maybe<string>) {
-    return guild.merge(voiceId).map((merged) =>
+    return mergeMap(guild, voiceId, (guild, voiceId) =>
       joinVoiceChannel({
-        guildId: merged[0].id,
-        channelId: merged[1],
-        adapterCreator: merged[0].voiceAdapterCreator,
+        guildId: guild.id,
+        channelId: voiceId,
+        adapterCreator: guild.voiceAdapterCreator,
       }),
     )
   }
@@ -94,17 +93,17 @@ export class MusicPlayer {
 
     this.audioPlayer.merge(url).asyncMap(async (merged) => {
       try {
-        const resource = await this.createAudioResource(merged[1])
+        const resource = await this.createAudioResource(merged.right)
 
-        merged[0].play(resource)
+        merged.left.play(resource)
 
         message?.reply({
           embeds: [playing],
         })
 
-        this.logger.log(`playing ${merged[1]}`)
+        this.logger.log(`playing ${merged.right}`)
 
-        merged[0].on('stateChange', (state) => {
+        merged.left.on('stateChange', (state) => {
           if (state.status !== AudioPlayerStatus.Idle) {
             return
           }
@@ -150,8 +149,8 @@ export class MusicPlayer {
 
   public destroy() {
     this.voiceState.merge(this.audioPlayer).map((merged) => {
-      merged[0].destroy()
-      merged[1].stop()
+      merged.left.destroy()
+      merged.right.stop()
     })
     this.subscription.map((s) => s.unsubscribe())
   }
