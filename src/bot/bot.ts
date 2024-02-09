@@ -1,11 +1,12 @@
 import { Client, REST, ClientUser, Events, Routes } from 'discord.js'
 import { LoggerService } from '../logger/logger'
 import { randomBytes } from 'node:crypto'
-import { maybe } from 'src/utils/maybe'
+import { maybe, undefinedToMaybe } from 'src/utils/maybe'
 import { intents, partials } from 'src/contsants/constants'
 import { MusicPlayer } from './music-player/music-player'
 import { Commands } from './commands/commands'
 import { splitWithModifier } from 'src/utils/splitWithModifier'
+import { createWriteStream } from 'node:fs'
 
 export class Bot {
   private client: Client
@@ -37,10 +38,18 @@ export class Bot {
 
       const command = this.commands.getCommand(interaction.commandName)
 
-      await command.asyncMap(async (c) => await c.run(interaction, this.client))
+      await command.asyncMap(
+        async (command) => await command.run(interaction, this.client),
+      )
     })
 
     this.client.on('messageCreate', (message) => {
+      if (Math.random() > 0.99) {
+        undefinedToMaybe(
+          this.client.emojis.cache.get('1202571355443306516'),
+        ).map((emoji) => message.react(emoji))
+      }
+
       if (!message.content.startsWith(this.playerModifier)) {
         return
       }

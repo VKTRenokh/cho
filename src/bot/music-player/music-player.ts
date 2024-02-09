@@ -19,6 +19,7 @@ export class MusicPlayer {
   private subscription = maybe<voice.PlayerSubscription>(null)
   private logger = new LoggerService('Music Player')
   public onEnd = maybe<() => void>(null)
+  private queue: string[] = []
 
   private commands = new Map<string, (message: Message<boolean>) => void>([
     ['play', (message) => this.play(message, getLink(message))],
