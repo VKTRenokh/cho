@@ -30,8 +30,8 @@ export const mergeMap = <L, R, N>(
   cb: (left: L, right: R) => N,
 ) => left.merge(right).map((maybes) => cb(maybes.left, maybes.right))
 
-export const undefinedToMaybe = <T>(from: () => T | undefined): Maybe<T> => {
-  const value = from() ?? null
+export const undefinedToMaybe = <T>(from: T | undefined): Maybe<T> => {
+  const value = from ?? null
 
   return maybe<T>(value)
 }

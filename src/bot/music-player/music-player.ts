@@ -11,6 +11,7 @@ import { LoggerService } from 'src/logger/logger'
 import { Guild } from 'discord.js'
 import { playing } from 'src/contsants/player-reply'
 import { disconnectTimeout } from 'src/contsants/constants'
+import { getLink } from './utils/get-link'
 
 export class MusicPlayer {
   private voiceState = maybe<voice.VoiceConnection>(null)
@@ -20,11 +21,7 @@ export class MusicPlayer {
   public onEnd = maybe<() => void>(null)
 
   private commands = new Map<string, (message: Message<boolean>) => void>([
-    [
-      'play',
-      (message) =>
-        this.play(message, maybe(message.content.split(' ')[1] ?? null)),
-    ],
+    ['play', (message) => this.play(message, getLink(message))],
     ['pause', () => this.pause()],
     ['unpause', () => this.unpause()],
     ['stop', () => this.stop()],
