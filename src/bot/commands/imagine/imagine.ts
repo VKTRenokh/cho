@@ -7,14 +7,18 @@ import { Command } from '../command'
 import { createCanvas } from 'canvas'
 import { Maybe } from 'src/utils/maybe'
 import { createGetStringOption } from 'src/utils/get-string-option'
-
-const textKey = 'text'
-const backgroundKey = 'background'
-const textColorKey = 'text-color'
+import {
+  backgroundKey,
+  fontSizeKey,
+  heightKey,
+  textColorKey,
+  textKey,
+  widthKey,
+} from './constants/option-keys'
 
 export class Imagine extends Command {
-  private readonly defaultWidth = 500
-  private readonly defaultHeight = 500
+  private readonly defaultWidth = '500'
+  private readonly defaultHeight = '500'
 
   constructor(key: string) {
     super(
@@ -33,32 +37,66 @@ export class Imagine extends Command {
         .addStringOption((option) =>
           option.setName(textColorKey).setDescription('text background'),
         )
+        .addStringOption((option) =>
+          option.setName(fontSizeKey).setDescription('font size in pixels'),
+        )
+        .addNumberOption((option) =>
+          option.setName(widthKey).setDescription('image width'),
+        )
+        .addNumberOption((option) =>
+          option.setName(heightKey).setDescription('image height'),
+        )
         .toJSON(),
       (interaction) => this.handle(interaction),
     )
   }
 
+  private createCanvas(
+    width: Maybe<string>,
+    height: Maybe<string>,
+    interaction: ChatInputCommandInteraction,
+  ) {
+    const w = +width.getOrElse(this.defaultWidth)
+    const h = +height.getOrElse(this.defaultHeight)
+
+    if (w <= 0 || h <= 0) {
+      interaction.reply({
+        ephemeral: true,
+        content: 'height or width cannot be 0',
+      })
+      throw new Error('0 height 0 width')
+    }
+
+    const safeWidth = w > 2000 ? 2000 : w
+    const safeHeight = h > 2000 ? 2000 : h
+
+    return createCanvas(safeWidth, safeHeight)
+  }
+
   private draw(
     interaction: ChatInputCommandInteraction,
     text: string,
-    background: Maybe<string>,
-    textColor: Maybe<string>,
+    option: (key: string) => Maybe<string>,
   ) {
-    const canvas = createCanvas(this.defaultWidth, this.defaultHeight)
+    const canvas = this.createCanvas(
+      option(widthKey),
+      option(heightKey),
+      interaction,
+    )
 
     const ctx = canvas.getContext('2d')
 
-    ctx.fillStyle = background.getOrElse('white')
+    ctx.fillStyle = option(backgroundKey).getOrElse('white')
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-    this.logger.log(`${canvas.width / canvas.height}`)
-    ctx.font = `${30}px Victor Mono NFM`
+    ctx.font = `${option(fontSizeKey).getOrElse('30')}px Victor Mono NFM`
 
-    const textMetrics = ctx.measureText(text)
+    const textMetrics = ctx.measureText('igor pidr')
 
-    ctx.fillStyle = textColor.getOrElse('black')
+    ctx.fillStyle = option(textColorKey).getOrElse('black')
+
     ctx.fillText(
-      text,
+      'igor pidr',
       canvas.width / 2 - textMetrics.width / 2,
       canvas.height / 2,
     )
@@ -75,13 +113,6 @@ export class Imagine extends Command {
   private handle(interaction: ChatInputCommandInteraction) {
     const getOption = createGetStringOption(interaction)
 
-    getOption(textKey).map((text) =>
-      this.draw(
-        interaction,
-        text,
-        getOption(backgroundKey),
-        getOption(textColorKey),
-      ),
-    )
+    getOption(textKey).map((text) => this.draw(interaction, text, getOption))
   }
 }
