@@ -1,20 +1,20 @@
 import { CacheType, ChatInputCommandInteraction } from 'discord.js'
+import { getStringOption } from 'src/utils/get-string-option'
 import { getGuildMembers } from 'src/utils/getGuildMembers'
 import { maybe, mergeMap } from 'src/utils/maybe'
+
+const nickname = 'nickname'
 
 export const setnick = async (
   interaction: ChatInputCommandInteraction<CacheType>,
 ): Promise<void> => {
-  const option = maybe(interaction.options.get('nickname'))
-
-  const value = option
-    .map((option) => option.value ?? null)
-    .fmap(maybe)
-    .map((value) => value.toString())
-
   const members = await getGuildMembers(maybe(interaction.guild))
 
-  mergeMap(members, value, (members, value) => {
-    members.forEach((member) => member.edit({ nick: value }))
-  })
+  mergeMap(
+    members,
+    getStringOption(interaction, nickname),
+    (members, value) => {
+      members.forEach((member) => member.edit({ nick: value }))
+    },
+  )
 }
