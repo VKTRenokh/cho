@@ -6,7 +6,6 @@ import { intents, partials } from 'src/contsants/constants'
 import { MusicPlayer } from './music-player/music-player'
 import { Commands } from './commands/commands'
 import { splitWithModifier } from 'src/utils/splitWithModifier'
-import { createWriteStream } from 'node:fs'
 
 export class Bot {
   private client: Client

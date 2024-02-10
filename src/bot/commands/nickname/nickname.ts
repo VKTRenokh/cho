@@ -1,6 +1,6 @@
 import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { LoggerService } from 'src/logger/logger'
-import { maybe } from 'src/monads/maybe/maybe'
+import { maybe } from 'src/utils/maybe'
 import { getGuildMembers } from 'src/utils/getGuildMembers'
 
 export const nickname = async (
@@ -17,7 +17,7 @@ export const nickname = async (
   const members = await getGuildMembers(maybe(interaction.guild))
 
   members.merge(value).map((merged) => {
-    merged[0].forEach((member) => member.edit({ nick: merged[1] }))
+    merged.left.forEach((member) => member.edit({ nick: merged.right }))
 
     logger.log('edit')
 
