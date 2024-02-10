@@ -15,6 +15,12 @@ import {
   textKey,
   widthKey,
 } from './constants/option-keys'
+import {
+  maxCanvasHeight,
+  maxCanvasWidth,
+  minCanvasHeight,
+  minCanvasWidth,
+} from './constants/width-height'
 
 export class Imagine extends Command {
   private readonly defaultWidth = '500'
@@ -41,10 +47,18 @@ export class Imagine extends Command {
           option.setName(fontSizeKey).setDescription('font size in pixels'),
         )
         .addNumberOption((option) =>
-          option.setName(widthKey).setDescription('image width'),
+          option
+            .setName(widthKey)
+            .setDescription('image width')
+            .setMinValue(minCanvasWidth)
+            .setMaxValue(maxCanvasWidth),
         )
         .addNumberOption((option) =>
-          option.setName(heightKey).setDescription('image height'),
+          option
+            .setName(heightKey)
+            .setDescription('image height')
+            .setMinValue(minCanvasHeight)
+            .setMaxValue(maxCanvasHeight),
         )
         .toJSON(),
       (interaction) => this.handle(interaction),
@@ -59,7 +73,7 @@ export class Imagine extends Command {
     const w = +width.getOrElse(this.defaultWidth)
     const h = +height.getOrElse(this.defaultHeight)
 
-    if (w <= 0 || h <= 0) {
+    if (w <= minCanvasWidth || h <= minCanvasHeight) {
       interaction.reply({
         ephemeral: true,
         content: 'height or width cannot be 0',
@@ -67,8 +81,8 @@ export class Imagine extends Command {
       throw new Error('0 height 0 width')
     }
 
-    const safeWidth = w > 2000 ? 2000 : w
-    const safeHeight = h > 2000 ? 2000 : h
+    const safeWidth = w > maxCanvasWidth ? maxCanvasWidth : w
+    const safeHeight = h > maxCanvasHeight ? maxCanvasHeight : h
 
     return createCanvas(safeWidth, safeHeight)
   }
@@ -89,14 +103,14 @@ export class Imagine extends Command {
     ctx.fillStyle = option(backgroundKey).getOrElse('white')
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-    ctx.font = `${option(fontSizeKey).getOrElse('30')}px Victor Mono NFM`
+    ctx.font = `${option(fontSizeKey).getOrElse('50')}px Victor Mono NFM`
 
-    const textMetrics = ctx.measureText('igor pidr')
+    const textMetrics = ctx.measureText(text)
 
     ctx.fillStyle = option(textColorKey).getOrElse('black')
 
     ctx.fillText(
-      'igor pidr',
+      text,
       canvas.width / 2 - textMetrics.width / 2,
       canvas.height / 2,
     )

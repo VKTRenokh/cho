@@ -6,6 +6,7 @@ import { setnick } from './setnick/setnick.ts'
 import { rofls } from './rofls/rofls.ts'
 import { maybe } from 'src/utils/maybe.ts'
 import { Imagine } from './imagine/imagine.ts'
+import { Fortune } from './fortune/fortune.ts'
 
 export class Commands {
   private logger = new LoggerService('Commands')
@@ -17,6 +18,8 @@ export class Commands {
     this.setCommands()
 
     this.slashCommands.set('imagine', new Imagine('imagine'))
+
+    this.slashCommands.set('fortune', new Fortune('fortune'))
   }
 
   public getCommandsJson() {
