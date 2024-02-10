@@ -107,6 +107,8 @@ export class Bot {
 
       await this.createCommands()
 
+      this.commands.setClient(this.client)
+
       this.logger.log(`bot login ${performance.now() - start}ms`)
     } catch (e) {
       this.logger.error('something went wrong when trying to login')

@@ -1,4 +1,4 @@
-import { SlashCommandBuilder } from 'discord.js'
+import { Client, SlashCommandBuilder } from 'discord.js'
 import { Command } from './command.ts'
 import { LoggerService } from 'src/logger/logger.ts'
 import { sendhi } from './sendhi/sendhi.ts'
@@ -7,10 +7,13 @@ import { rofls } from './rofls/rofls.ts'
 import { maybe } from 'src/utils/maybe.ts'
 import { Imagine } from './imagine/imagine.ts'
 import { Fortune } from './fortune/fortune.ts'
+import { MessagesChart } from './messages-chart/messages-chart.ts'
 
 export class Commands {
   private logger = new LoggerService('Commands')
   public slashCommands = new Map<string, Command>()
+  private client = maybe<Client>(null)
+  private messagesChart = new MessagesChart('chart')
 
   constructor() {
     this.logger.log('init')
@@ -20,6 +23,18 @@ export class Commands {
     this.slashCommands.set('imagine', new Imagine('imagine'))
 
     this.slashCommands.set('fortune', new Fortune('fortune'))
+
+    this.slashCommands.set('chart', this.messagesChart)
+  }
+
+  public setClient(client: Client) {
+    if (this.client.value) {
+      return
+    }
+
+    this.client = maybe(client)
+
+    this.messagesChart.setClient(client)
   }
 
   public getCommandsJson() {
