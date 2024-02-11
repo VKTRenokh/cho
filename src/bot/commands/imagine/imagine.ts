@@ -25,7 +25,6 @@ import {
   minCanvasWidth,
 } from './constants/width-height'
 import { createCommand } from './utils/create-command'
-import { webpBufferToJpegBuffer } from './utils/webp-buffer-to-jpeg-buffer'
 import { webpImageUrlToJpegBuffer } from 'src/utils/webp-image-url-to-jpeg-buffer'
 
 export class Imagine extends Command {
@@ -76,10 +75,18 @@ export class Imagine extends Command {
     canvas.map((canvas) => ctx.drawImage(canvas, 0, 0))
   }
 
-  private drawImageBackground(
+  private async drawImageBackground(
     attachment: Maybe<Attachment>,
-    interaction: ChatInputCommandInteraction,
-  ) {}
+    ctx: CanvasRenderingContext2D,
+  ) {
+    const url = attachment.map((attachment) => attachment.url)
+
+    const image = await webpImageUrlToJpegBuffer(url)
+
+    const canvas = await image.asyncMap((image) => loadImage(image))
+
+    canvas.map((canvas) => ctx.drawImage(canvas, 0, 0))
+  }
 
   private parseMetrics(attachment: Maybe<Attachment>) {
     const width = attachment
@@ -107,11 +114,12 @@ export class Imagine extends Command {
       option.string(heightKey).flatGetOrElse(metrics.height),
       interaction,
     )
-
     const ctx = canvas.getContext('2d')
 
     ctx.fillStyle = option.string(backgroundKey).getOrElse('white')
     ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    await this.drawImageBackground(attachment, ctx)
 
     const fontSize = option.string(fontSizeKey).getOrElse('50')
     ctx.font = `${fontSize}px Victor Mono NFM`
