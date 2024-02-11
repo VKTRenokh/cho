@@ -1,11 +1,11 @@
 import {
   ChatInputCommandInteraction,
-  SlashCommandBuilder,
   AttachmentBuilder,
+  Client,
 } from 'discord.js'
 import { Command } from '../command'
-import { createCanvas } from 'canvas'
-import { Maybe } from 'src/utils/maybe'
+import { CanvasRenderingContext2D, createCanvas, loadImage } from 'canvas'
+import { Maybe, maybe } from 'src/utils/maybe'
 import { createGetStringOption } from 'src/utils/get-string-option'
 import {
   backgroundKey,
@@ -13,6 +13,7 @@ import {
   heightKey,
   textColorKey,
   textKey,
+  userKey,
   widthKey,
 } from './constants/option-keys'
 import {
@@ -21,47 +22,16 @@ import {
   minCanvasHeight,
   minCanvasWidth,
 } from './constants/width-height'
+import { createCommand } from './utils/create-command'
+import { webpBufferToJpegBuffer } from './utils/webp-buffer-to-jpeg-buffer'
 
 export class Imagine extends Command {
   private readonly defaultWidth = '500'
   private readonly defaultHeight = '500'
 
   constructor(key: string) {
-    super(
-      new SlashCommandBuilder()
-        .setName(key)
-        .setDescription('hello world')
-        .addStringOption((option) =>
-          option
-            .setName(textKey)
-            .setDescription('what to write')
-            .setRequired(true),
-        )
-        .addStringOption((option) =>
-          option.setName(backgroundKey).setDescription('background color'),
-        )
-        .addStringOption((option) =>
-          option.setName(textColorKey).setDescription('text background'),
-        )
-        .addStringOption((option) =>
-          option.setName(fontSizeKey).setDescription('font size in pixels'),
-        )
-        .addNumberOption((option) =>
-          option
-            .setName(widthKey)
-            .setDescription('image width')
-            .setMinValue(minCanvasWidth)
-            .setMaxValue(maxCanvasWidth),
-        )
-        .addNumberOption((option) =>
-          option
-            .setName(heightKey)
-            .setDescription('image height')
-            .setMinValue(minCanvasHeight)
-            .setMaxValue(maxCanvasHeight),
-        )
-        .toJSON(),
-      (interaction) => this.handle(interaction),
+    super(createCommand(key), (interaction, logger, client) =>
+      this.handle(interaction, client),
     )
   }
 
@@ -87,8 +57,31 @@ export class Imagine extends Command {
     return createCanvas(safeWidth, safeHeight)
   }
 
-  private draw(
+  private async drawUserAvatar(
+    id: Maybe<string>,
+    ctx: CanvasRenderingContext2D,
+    client: Client,
+  ) {
+    const user = await id.asyncMap(async (id) => await client.users.fetch(id))
+
+    await (
+      await (
+        await (
+          await (
+            await user
+              .fmap((user) => maybe(user.avatarURL()))
+              .asyncMap(async (url) => await fetch(url))
+          ).asyncMap(async (response) => await response.arrayBuffer())
+        )
+          .map((arrayBuffer) => Buffer.from(arrayBuffer))
+          .asyncMap(async (buffer) => await webpBufferToJpegBuffer(buffer))
+      ).asyncMap(async (buffer) => await loadImage(buffer))
+    ).map((image) => ctx.drawImage(image, 0, 0))
+  }
+
+  private async draw(
     interaction: ChatInputCommandInteraction,
+    client: Client,
     text: string,
     option: (key: string) => Maybe<string>,
   ) {
@@ -104,6 +97,8 @@ export class Imagine extends Command {
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
     ctx.font = `${option(fontSizeKey).getOrElse('50')}px Victor Mono NFM`
+
+    await this.drawUserAvatar(option(userKey), ctx, client)
 
     const textMetrics = ctx.measureText(text)
 
@@ -124,9 +119,11 @@ export class Imagine extends Command {
     })
   }
 
-  private handle(interaction: ChatInputCommandInteraction) {
+  private handle(interaction: ChatInputCommandInteraction, client: Client) {
     const getOption = createGetStringOption(interaction)
 
-    getOption(textKey).map((text) => this.draw(interaction, text, getOption))
+    getOption(textKey).map((text) =>
+      this.draw(interaction, client, text, getOption),
+    )
   }
 }
