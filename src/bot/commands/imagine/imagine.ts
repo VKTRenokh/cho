@@ -6,11 +6,12 @@ import {
 import { Command } from '../command'
 import { CanvasRenderingContext2D, createCanvas, loadImage } from 'canvas'
 import { Maybe, maybe } from 'src/utils/maybe'
-import { createGetStringOption } from 'src/utils/get-string-option'
+import { Options } from 'src/utils/get-string-option'
 import {
   backgroundKey,
   fontSizeKey,
   heightKey,
+  imageBackgroundKey,
   textColorKey,
   textKey,
   userKey,
@@ -83,26 +84,29 @@ export class Imagine extends Command {
     interaction: ChatInputCommandInteraction,
     client: Client,
     text: string,
-    option: (key: string) => Maybe<string>,
+    option: Options,
   ) {
     const canvas = this.createCanvas(
-      option(widthKey),
-      option(heightKey),
+      option.string(widthKey),
+      option.string(heightKey),
       interaction,
     )
 
+    option.attachment(imageBackgroundKey).map(console.log)
+
     const ctx = canvas.getContext('2d')
 
-    ctx.fillStyle = option(backgroundKey).getOrElse('white')
+    ctx.fillStyle = option.string(backgroundKey).getOrElse('white')
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-    ctx.font = `${option(fontSizeKey).getOrElse('50')}px Victor Mono NFM`
+    const fontSize = option.string(fontSizeKey).getOrElse('50')
+    ctx.font = `${fontSize}px Victor Mono NFM`
 
-    await this.drawUserAvatar(option(userKey), ctx, client)
+    await this.drawUserAvatar(option.string(userKey), ctx, client)
 
     const textMetrics = ctx.measureText(text)
 
-    ctx.fillStyle = option(textColorKey).getOrElse('black')
+    ctx.fillStyle = option.string(textColorKey).getOrElse('black')
 
     ctx.fillText(
       text,
@@ -110,20 +114,16 @@ export class Imagine extends Command {
       canvas.height / 2,
     )
 
-    const stream = canvas.createJPEGStream()
-
-    const attachment = new AttachmentBuilder(stream)
-
     interaction.reply({
-      files: [attachment],
+      files: [new AttachmentBuilder(canvas.createJPEGStream())],
     })
   }
 
   private handle(interaction: ChatInputCommandInteraction, client: Client) {
-    const getOption = createGetStringOption(interaction)
+    const getOption = new Options(interaction)
 
-    getOption(textKey).map((text) =>
-      this.draw(interaction, client, text, getOption),
-    )
+    getOption
+      .string(textKey)
+      .map((text) => this.draw(interaction, client, text, getOption))
   }
 }

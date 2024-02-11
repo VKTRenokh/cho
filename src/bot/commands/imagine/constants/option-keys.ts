@@ -5,6 +5,7 @@ export const fontSizeKey = 'fontsize'
 export const widthKey = 'width'
 export const heightKey = 'height'
 export const userKey = 'user-avatar'
+export const imageBackgroundKey = 'image-background'
 
 // -
 //         (textMetrics.actualBoundingBoxAscent +

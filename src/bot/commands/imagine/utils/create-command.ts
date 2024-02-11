@@ -9,6 +9,7 @@ import {
   backgroundKey,
   fontSizeKey,
   heightKey,
+  imageBackgroundKey,
   textColorKey,
   textKey,
   userKey,
@@ -46,4 +47,7 @@ export const createCommand = (key: string) =>
         .setMaxValue(maxCanvasHeight),
     )
     .addUserOption((option) => option.setName(userKey).setDescription('avatar'))
+    .addAttachmentOption((option) =>
+      option.setName(imageBackgroundKey).setDescription('image background'),
+    )
     .toJSON()

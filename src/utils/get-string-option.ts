@@ -1,17 +1,29 @@
 import { ChatInputCommandInteraction } from 'discord.js'
-import { Maybe, maybe } from './maybe'
+import { Maybe, maybe, undefinedToMaybe } from './maybe'
 
 export const getStringOption = (
   interaction: ChatInputCommandInteraction,
   key: string,
 ): Maybe<string> => {
+  console.log(interaction.options.get(key))
+
   return maybe(interaction.options.get(key)).map((option) =>
     (option.value ?? '').toString(),
   )
 }
 
-export const createGetStringOption = (
-  interaction: ChatInputCommandInteraction,
-): ((key: string) => Maybe<string>) => {
-  return (key) => getStringOption(interaction, key)
+export class Options {
+  constructor(private interaction: ChatInputCommandInteraction) {}
+
+  public string(key: string) {
+    return maybe(this.interaction.options.get(key)).map((option) =>
+      (option.value ?? '').toString(),
+    )
+  }
+
+  public attachment(key: string) {
+    return maybe(this.interaction.options.get(key)).fmap((option) =>
+      undefinedToMaybe(option.attachment),
+    )
+  }
 }
