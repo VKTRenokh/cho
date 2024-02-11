@@ -2,6 +2,7 @@ import {
   ChatInputCommandInteraction,
   AttachmentBuilder,
   Client,
+  Attachment,
 } from 'discord.js'
 import { Command } from '../command'
 import { CanvasRenderingContext2D, createCanvas, loadImage } from 'canvas'
@@ -25,6 +26,7 @@ import {
 } from './constants/width-height'
 import { createCommand } from './utils/create-command'
 import { webpBufferToJpegBuffer } from './utils/webp-buffer-to-jpeg-buffer'
+import { webpImageUrlToJpegBuffer } from 'src/utils/webp-image-url-to-jpeg-buffer'
 
 export class Imagine extends Command {
   private readonly defaultWidth = '500'
@@ -65,19 +67,30 @@ export class Imagine extends Command {
   ) {
     const user = await id.asyncMap(async (id) => await client.users.fetch(id))
 
-    await (
-      await (
-        await (
-          await (
-            await user
-              .fmap((user) => maybe(user.avatarURL()))
-              .asyncMap(async (url) => await fetch(url))
-          ).asyncMap(async (response) => await response.arrayBuffer())
-        )
-          .map((arrayBuffer) => Buffer.from(arrayBuffer))
-          .asyncMap(async (buffer) => await webpBufferToJpegBuffer(buffer))
-      ).asyncMap(async (buffer) => await loadImage(buffer))
-    ).map((image) => ctx.drawImage(image, 0, 0))
+    const image = await webpImageUrlToJpegBuffer(
+      user.fmap((user) => maybe(user.avatarURL())),
+    )
+
+    const canvas = await image.asyncMap(async (image) => await loadImage(image))
+
+    canvas.map((canvas) => ctx.drawImage(canvas, 0, 0))
+  }
+
+  private drawImageBackground(
+    attachment: Maybe<Attachment>,
+    interaction: ChatInputCommandInteraction,
+  ) {}
+
+  private parseMetrics(attachment: Maybe<Attachment>) {
+    const width = attachment
+      .fmap((attachment) => maybe(attachment.width))
+      .map((number) => number.toString())
+
+    const height = attachment
+      .fmap((attachment) => maybe(attachment.height))
+      .map((number) => number.toString())
+
+    return { width, height }
   }
 
   private async draw(
@@ -86,13 +99,14 @@ export class Imagine extends Command {
     text: string,
     option: Options,
   ) {
+    const attachment = option.attachment(imageBackgroundKey)
+    const metrics = this.parseMetrics(attachment)
+
     const canvas = this.createCanvas(
-      option.string(widthKey),
-      option.string(heightKey),
+      option.string(widthKey).flatGetOrElse(metrics.width),
+      option.string(heightKey).flatGetOrElse(metrics.height),
       interaction,
     )
-
-    option.attachment(imageBackgroundKey).map(console.log)
 
     const ctx = canvas.getContext('2d')
 

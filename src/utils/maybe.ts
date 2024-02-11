@@ -3,6 +3,7 @@ export interface Maybe<T> {
   equals: (m: Maybe<unknown>) => boolean
   fmap: <R>(f: (v: T) => Maybe<R>) => Maybe<R>
   getOrElse: (dv: T) => T
+  flatGetOrElse: <R>(dv: R) => R | Maybe<T>
   asyncMap: <R>(fn: (v: T) => Promise<R>) => Promise<Maybe<R>>
   merge: <R>(om: Maybe<R>) => Maybe<{ left: T; right: R }>
   value: T | null
@@ -13,6 +14,7 @@ export const maybe = <T>(value: T | null): Maybe<T> => ({
   equals: (m) => m.value === value,
   fmap: <R>(f: (value: T) => Maybe<R>) => (value ? f(value) : maybe<R>(null)),
   getOrElse: (dv) => (value === null ? dv : value),
+  flatGetOrElse: <R>(dv: R) => (value === null ? dv : maybe<T>(value)),
   merge: <R>(om: Maybe<R>): Maybe<{ left: T; right: R }> =>
     maybe<T>(value).fmap((v: T) => om.map((ov) => ({ left: v, right: ov }))),
   asyncMap: async <R>(fn: (v: T) => Promise<R>): Promise<Maybe<R>> =>
