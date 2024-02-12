@@ -83,9 +83,9 @@ export class MusicPlayer {
 
     const guild = member.map((m) => m.guild)
 
-    const voiceId = member.map((m) => m.voice.channelId).fmap(maybe)
+    const voiceId = member.map((m) => m.voice.channelId).flatMap(maybe)
 
-    this.voiceState = url.fmap(() => this.createVoiceState(guild, voiceId))
+    this.voiceState = url.flatMap(() => this.createVoiceState(guild, voiceId))
 
     this.audioPlayer = this.createAudioPlayer(this.voiceState)
 

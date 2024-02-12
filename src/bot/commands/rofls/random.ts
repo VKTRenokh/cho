@@ -32,7 +32,7 @@ export const random: Random[] = [
 
     const nickname = getRandomMember(members)
       .map((member) => member.nickname)
-      .fmap(maybe)
+      .flatMap(maybe)
 
     mergeMap(nickname, guild, (nickname, guild) => {
       guild.edit({ name: nickname })
@@ -50,7 +50,7 @@ export const random: Random[] = [
       async (g) => await g.members.fetch({ user: interaction.user }),
     )
 
-    const channelId = member.fmap((member) => maybe(member.voice.channelId))
+    const channelId = member.flatMap((member) => maybe(member.voice.channelId))
 
     const player = new MusicPlayer()
 

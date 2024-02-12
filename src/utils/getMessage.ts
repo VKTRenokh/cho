@@ -13,5 +13,5 @@ export const getMessage = async (
     channel.isTextBased() ? channel.messages.fetch(messageId) : null,
   )
 
-  return message.fmap(maybe)
+  return message.flatMap(maybe)
 }

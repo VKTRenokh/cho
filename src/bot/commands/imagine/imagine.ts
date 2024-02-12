@@ -67,7 +67,7 @@ export class Imagine extends Command {
     const user = await id.asyncMap(async (id) => await client.users.fetch(id))
 
     const image = await webpImageUrlToJpegBuffer(
-      user.fmap((user) => maybe(user.avatarURL())),
+      user.flatMap((user) => maybe(user.avatarURL())),
     )
 
     const canvas = await image.asyncMap(async (image) => await loadImage(image))
@@ -90,11 +90,11 @@ export class Imagine extends Command {
 
   private parseMetrics(attachment: Maybe<Attachment>) {
     const width = attachment
-      .fmap((attachment) => maybe(attachment.width))
+      .flatMap((attachment) => maybe(attachment.width))
       .map((number) => number.toString())
 
     const height = attachment
-      .fmap((attachment) => maybe(attachment.height))
+      .flatMap((attachment) => maybe(attachment.height))
       .map((number) => number.toString())
 
     return { width, height }

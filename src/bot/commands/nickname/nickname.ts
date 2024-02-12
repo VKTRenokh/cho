@@ -11,7 +11,7 @@ export const nickname = async (
 
   const value = option
     .map((option) => option.value ?? null)
-    .fmap(maybe)
+    .flatMap(maybe)
     .map((value) => value.toString())
 
   const members = await getGuildMembers(maybe(interaction.guild))

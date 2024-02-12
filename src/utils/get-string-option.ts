@@ -22,7 +22,7 @@ export class Options {
   }
 
   public attachment(key: string) {
-    return maybe(this.interaction.options.get(key)).fmap((option) =>
+    return maybe(this.interaction.options.get(key)).flatMap((option) =>
       undefinedToMaybe(option.attachment),
     )
   }

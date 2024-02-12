@@ -27,7 +27,7 @@ export const sendhi = async (
 
     const sticker = stickerPack
       .map((pack) => pack.stickers.get(chocoHelloStickerId) ?? null)
-      .fmap(maybe)
+      .flatMap(maybe)
 
     await sticker
       .merge(message)
