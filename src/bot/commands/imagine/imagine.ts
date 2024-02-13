@@ -6,7 +6,7 @@ import {
 } from 'discord.js'
 import { Command } from '../command'
 import { CanvasRenderingContext2D, createCanvas, loadImage } from 'canvas'
-import { Maybe, maybe } from 'src/utils/maybe'
+import { Maybe, maybe } from '@victorenokh/maybe.ts'
 import { Options } from 'src/utils/get-string-option'
 import {
   backgroundKey,

@@ -1,4 +1,4 @@
-import { Maybe, undefinedToMaybe } from './maybe'
+import { Maybe, undefinedToMaybe } from '@victorenokh/maybe.ts'
 
 export class MaybeMap<K, V> extends Map<K, V> {
   constructor(iterable: Iterable<readonly [K, V]>) {

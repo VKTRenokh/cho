@@ -4,14 +4,15 @@ import { LoggerService } from 'src/logger/logger.ts'
 import { sendhi } from './sendhi/sendhi.ts'
 import { setnick } from './setnick/setnick.ts'
 import { rofls } from './rofls/rofls.ts'
-import { maybe } from 'src/utils/maybe.ts'
+import { maybe } from '@victorenokh/maybe.ts'
 import { Imagine } from './imagine/imagine.ts'
 import { Fortune } from './fortune/fortune.ts'
 import { MessagesChart } from './messages-chart/messages-chart.ts'
+import { MaybeMap } from 'src/utils/maybe-map.ts'
 
 export class Commands {
   private logger = new LoggerService('Commands')
-  public slashCommands = new Map<string, Command>()
+  public slashCommands = new MaybeMap<string, Command>([])
   private client = maybe<Client>(null)
   private messagesChart = new MessagesChart('chart')
 
@@ -49,7 +50,7 @@ export class Commands {
   }
 
   public getCommand(key: string) {
-    return maybe(this.slashCommands.get(key) ?? null)
+    return this.slashCommands.getMaybe(key)
   }
 
   private setCommands() {

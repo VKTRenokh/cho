@@ -3,7 +3,7 @@ import { LoggerService } from 'src/logger/logger'
 import { random } from './random'
 import { maybeKick } from './maybeKick'
 import { randomInt } from 'node:crypto'
-import { maybe } from 'src/utils/maybe'
+import { maybe } from '@victorenokh/maybe.ts'
 
 export const rofls = async (
   interaction: ChatInputCommandInteraction<CacheType>,

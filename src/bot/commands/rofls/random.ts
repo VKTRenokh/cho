@@ -4,7 +4,7 @@ import { getRandomMember } from 'src/utils/getRandomMember'
 import { randomBytes, randomInt } from 'node:crypto'
 import { getRandomVoiceState } from 'src/utils/getRandomVoiceState'
 import { MusicPlayer } from 'src/bot/music-player/music-player'
-import { Maybe, maybe, mergeMap } from 'src/utils/maybe'
+import { Maybe, maybe, mergeMap } from '@victorenokh/maybe.ts'
 import { musicUrls } from 'src/contsants/rofls'
 
 export type Random = (

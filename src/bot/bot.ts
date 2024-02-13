@@ -1,7 +1,7 @@
 import { Client, REST, ClientUser, Events, Routes } from 'discord.js'
 import { LoggerService } from '../logger/logger'
 import { randomBytes } from 'node:crypto'
-import { maybe, undefinedToMaybe } from 'src/utils/maybe'
+import { maybe, undefinedToMaybe } from '@victorenokh/maybe.ts'
 import { intents, partials } from 'src/contsants/constants'
 import { MusicPlayer } from './music-player/music-player'
 import { Commands } from './commands/commands'

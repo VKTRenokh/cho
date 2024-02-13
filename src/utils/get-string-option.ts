@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction } from 'discord.js'
-import { Maybe, maybe, undefinedToMaybe } from './maybe'
+import { Maybe, maybe } from '@victorenokh/maybe.ts'
 
 export const getStringOption = (
   interaction: ChatInputCommandInteraction,
@@ -22,8 +22,8 @@ export class Options {
   }
 
   public attachment(key: string) {
-    return maybe(this.interaction.options.get(key)).flatMap((option) =>
-      undefinedToMaybe(option.attachment),
+    return maybe(this.interaction.options.get(key)).mapNullable(
+      (option) => option.attachment,
     )
   }
 }

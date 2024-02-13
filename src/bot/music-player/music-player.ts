@@ -4,7 +4,7 @@ import voice, {
   createAudioResource,
   joinVoiceChannel,
 } from '@discordjs/voice'
-import { Maybe, maybe, mergeMap } from 'src/utils/maybe'
+import { Maybe, maybe, mergeMap } from '@victorenokh/maybe.ts'
 import * as pdl from 'play-dl'
 import { Message } from 'discord.js'
 import { LoggerService } from 'src/logger/logger'
@@ -12,6 +12,7 @@ import { Guild } from 'discord.js'
 import { playing } from 'src/contsants/player-reply'
 import { disconnectTimeout } from 'src/contsants/constants'
 import { getLink } from './utils/get-link'
+import { MaybeMap } from 'src/utils/maybe-map'
 
 export class MusicPlayer {
   private voiceState = maybe<voice.VoiceConnection>(null)
@@ -21,7 +22,7 @@ export class MusicPlayer {
   public onEnd = maybe<() => void>(null)
   private queue: string[] = []
 
-  private commands = new Map<string, (message: Message<boolean>) => void>([
+  private commands = new MaybeMap<string, (message: Message<boolean>) => void>([
     ['play', (message) => this.play(message, getLink(message))],
     ['pause', () => this.pause()],
     ['unpause', () => this.unpause()],
@@ -33,7 +34,7 @@ export class MusicPlayer {
   }
 
   public getCommand(key: string) {
-    return maybe(this.commands.get(key) ?? null)
+    return this.commands.getMaybe(key)
   }
 
   private stop() {

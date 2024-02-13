@@ -1,4 +1,4 @@
-import { Maybe } from './maybe'
+import { Maybe } from '@victorenokh/maybe.ts'
 import { webpBufferToJpegBuffer } from './webp-buffer-to-jpg'
 
 export const webpImageUrlToJpegBuffer = async (

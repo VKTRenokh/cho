@@ -9,7 +9,7 @@ import { Command } from '../command'
 import { Charts } from './enums/charts'
 import { MaybeMap } from 'src/utils/maybe-map'
 import { getStringOption } from 'src/utils/get-string-option'
-import { Maybe } from 'src/utils/maybe'
+import { Maybe } from '@victorenokh/maybe.ts'
 
 type Chart = Map<string, number>
 

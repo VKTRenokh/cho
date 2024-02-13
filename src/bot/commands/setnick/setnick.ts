@@ -1,7 +1,7 @@
 import { CacheType, ChatInputCommandInteraction } from 'discord.js'
 import { getStringOption } from 'src/utils/get-string-option'
 import { getGuildMembers } from 'src/utils/getGuildMembers'
-import { maybe, mergeMap } from 'src/utils/maybe'
+import { maybe, mergeMap } from '@victorenokh/maybe.ts'
 
 const nickname = 'nickname'
 
