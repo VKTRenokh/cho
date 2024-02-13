@@ -96,13 +96,16 @@ export class MessagesChart extends Command {
 
   private sendStat(
     interaction: ChatInputCommandInteraction,
+    chartName: string,
     stat: { name: string; stat: number }[],
   ) {
     const message = stat.reduce((acc, curr) => {
       return acc + `${curr.name} - ${curr.stat}\n`
     }, '')
 
-    interaction.reply({ content: message })
+    interaction.reply({
+      content: `chart: ${chartName}\n${message || 'no stats'}`,
+    })
   }
 
   public async run(
@@ -119,6 +122,6 @@ export class MessagesChart extends Command {
 
     const statWithNicks = await this.getStatWithNicks(entries, client)
 
-    statWithNicks.map((stat) => this.sendStat(interaction, stat))
+    statWithNicks.map((stat) => this.sendStat(interaction, chart, stat))
   }
 }

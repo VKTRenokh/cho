@@ -5,8 +5,6 @@ export const getStringOption = (
   interaction: ChatInputCommandInteraction,
   key: string,
 ): Maybe<string> => {
-  console.log(interaction.options.get(key))
-
   return maybe(interaction.options.get(key)).map((option) =>
     (option.value ?? '').toString(),
   )
