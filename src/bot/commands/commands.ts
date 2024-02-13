@@ -9,6 +9,7 @@ import { Imagine } from './imagine/imagine.ts'
 import { Fortune } from './fortune/fortune.ts'
 import { MessagesChart } from './messages-chart/messages-chart.ts'
 import { MaybeMap } from 'src/utils/maybe-map.ts'
+import { Countdown } from './countdown/countdown.ts'
 
 export class Commands {
   private logger = new LoggerService('Commands')
@@ -26,6 +27,8 @@ export class Commands {
     this.slashCommands.set('fortune', new Fortune('fortune'))
 
     this.slashCommands.set('chart', this.messagesChart)
+
+    this.slashCommands.set('countdowntoigor', new Countdown('countdowntoigor'))
   }
 
   public setClient(client: Client) {
