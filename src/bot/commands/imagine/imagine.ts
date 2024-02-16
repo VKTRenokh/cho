@@ -10,7 +10,7 @@ import { Maybe, maybe } from '@victorenokh/maybe.ts'
 import { Options } from 'src/utils/get-string-option'
 import {
   backgroundKey,
-  fontSizeKey,
+  fontStyleKey,
   heightKey,
   imageBackgroundKey,
   textColorKey,
@@ -30,6 +30,10 @@ import { webpImageUrlToJpegBuffer } from 'src/utils/webp-image-url-to-jpeg-buffe
 export class Imagine extends Command {
   private readonly defaultWidth = '500'
   private readonly defaultHeight = '500'
+
+  private readonly defaultFontSize = '50'
+  private readonly fontName = 'Victor Mono NF'
+  private readonly defaultFontStyle = `normal ${this.defaultFontSize}px`
 
   constructor(key: string) {
     super(createCommand(key), (interaction, logger, client) =>
@@ -100,6 +104,12 @@ export class Imagine extends Command {
     return { width, height }
   }
 
+  private setFont(ctx: CanvasRenderingContext2D, fontStyle: Maybe<string>) {
+    const style = fontStyle.getOrElse(this.defaultFontStyle)
+
+    ctx.font = `${style} ${this.fontName}`
+  }
+
   private async draw(
     interaction: ChatInputCommandInteraction,
     client: Client,
@@ -121,8 +131,7 @@ export class Imagine extends Command {
 
     await this.drawImageBackground(attachment, ctx)
 
-    const fontSize = option.string(fontSizeKey).getOrElse('50')
-    ctx.font = `${fontSize}px Victor Mono NFM`
+    this.setFont(ctx, option.string(fontStyleKey))
 
     await this.drawUserAvatar(option.string(userKey), ctx, client)
 

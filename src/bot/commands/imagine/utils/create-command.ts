@@ -7,7 +7,7 @@ import {
 } from '../constants/width-height'
 import {
   backgroundKey,
-  fontSizeKey,
+  fontStyleKey,
   heightKey,
   imageBackgroundKey,
   textColorKey,
@@ -29,9 +29,6 @@ export const createCommand = (key: string) =>
     .addStringOption((option) =>
       option.setName(textColorKey).setDescription('text background'),
     )
-    .addStringOption((option) =>
-      option.setName(fontSizeKey).setDescription('font size in pixels'),
-    )
     .addNumberOption((option) =>
       option
         .setName(widthKey)
@@ -49,5 +46,8 @@ export const createCommand = (key: string) =>
     .addUserOption((option) => option.setName(userKey).setDescription('avatar'))
     .addAttachmentOption((option) =>
       option.setName(imageBackgroundKey).setDescription('image background'),
+    )
+    .addStringOption((option) =>
+      option.setName(fontStyleKey).setDescription('fontStyle'),
     )
     .toJSON()
