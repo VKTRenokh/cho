@@ -14,13 +14,13 @@ const main = (): void => {
 
   const bot = new Bot(process.env.TOKEN)
 
-  process.on('uncaughtException', (e) => {
-    logger.warn(`uncaughtException: ${e}`)
-  })
-
-  process.on('unhandledRejection', (e) => {
-    logger.warn(`unhandledRejection: ${e}`)
-  })
+  // process.on('uncaughtException', (e) => {
+  //   logger.warn(`uncaughtException: ${e}`)
+  // })
+  //
+  // process.on('unhandledRejection', (e) => {
+  //   logger.warn(`unhandledRejection: ${e}`)
+  // })
 
   process.on('SIGINT', async () => {
     await bot.destroy()
