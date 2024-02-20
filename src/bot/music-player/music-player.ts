@@ -12,7 +12,8 @@ import { Guild } from 'discord.js'
 import { playing } from 'src/contsants/player-reply'
 import { disconnectTimeout } from 'src/contsants/constants'
 import { getLink } from './utils/get-link'
-import { MaybeMap } from 'src/utils/maybe-map'
+
+export type Command = (message: Message<boolean>) => void
 
 export class MusicPlayer {
   private voiceState = M.none<voice.VoiceConnection>()
@@ -22,7 +23,7 @@ export class MusicPlayer {
   public onEnd = M.none<() => void>()
   private queue: string[] = []
 
-  private commands = new MaybeMap<string, (message: Message<boolean>) => void>([
+  private commands = new Map<string, Command>([
     ['play', (message) => this.play(message, getLink(message))],
     ['pause', () => this.pause()],
     ['unpause', () => this.unpause()],
@@ -34,7 +35,9 @@ export class MusicPlayer {
   }
 
   public getCommand(key: string) {
-    return this.commands.getMaybe(key)
+    const command = this.commands.get(key)
+
+    return M.of(command)
   }
 
   private stop() {

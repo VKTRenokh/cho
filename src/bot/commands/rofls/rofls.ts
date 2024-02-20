@@ -3,7 +3,7 @@ import { LoggerService } from 'src/logger/logger'
 import { random } from './random'
 import { maybeKick } from './maybeKick'
 import { randomInt } from 'node:crypto'
-import { maybe } from '@victorenokh/maybe.ts'
+import { M } from '@victorenokh/maybe.ts'
 
 export const rofls = async (
   interaction: ChatInputCommandInteraction<CacheType>,
@@ -17,7 +17,7 @@ export const rofls = async (
 
   const rofl = random[index]
 
-  await rofl(maybe(interaction.guild), interaction)
+  await rofl(M.of(interaction.guild), interaction)
 
   logger.log(`rofl ${index}`)
 

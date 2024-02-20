@@ -12,7 +12,7 @@ import { LoggerService } from '../logger/logger'
 import { randomBytes } from 'node:crypto'
 import { E, M } from '@victorenokh/maybe.ts'
 import { intents, partials } from 'src/contsants/constants'
-import { MusicPlayer } from './music-player/music-player'
+import { Command, MusicPlayer } from './music-player/music-player'
 import { Commands } from './commands/commands'
 import { splitWithModifier } from 'src/utils/splitWithModifier'
 import { brilliantEmoteId } from './constants/emotes'
@@ -75,10 +75,7 @@ export class Bot {
 
       const command = this.player.getCommand(splitted[0])
 
-      E.fromMaybe<string, (m: Message<boolean>) => void>(
-        command,
-        'unknown player command',
-      ).fold(
+      E.fromMaybe<string, Command>(command, 'unknown player command').fold(
         (error) => (message.reply(error), undefined),
         (fn) => fn(message),
       )

@@ -2,7 +2,7 @@ import { ChatInputCommandInteraction } from 'discord.js'
 import { LoggerService } from 'src/logger/logger'
 import { randomInt } from 'node:crypto'
 import { kickNum, maxKickNum } from 'src/contsants/constants'
-import { maybe } from '@victorenokh/maybe.ts'
+import { M } from '@victorenokh/maybe.ts'
 
 export const maybeKick = async (
   interaction: ChatInputCommandInteraction,
@@ -13,7 +13,7 @@ export const maybeKick = async (
   logger.log(`random kick int is ${int}, remains ${int - kickNum}`)
 
   if (int === kickNum) {
-    const member = await maybe(interaction.guild).asyncMap(
+    const member = await M.of(interaction.guild).asyncMap(
       async (guild) => await guild.members.fetch(interaction.user.id),
     )
 

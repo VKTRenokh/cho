@@ -4,11 +4,11 @@ import { getRandomMember } from 'src/utils/getRandomMember'
 import { randomBytes, randomInt } from 'node:crypto'
 import { getRandomVoiceState } from 'src/utils/getRandomVoiceState'
 import { MusicPlayer } from 'src/bot/music-player/music-player'
-import { Maybe, maybe, mergeMap } from '@victorenokh/maybe.ts'
+import { M } from '@victorenokh/maybe.ts'
 import { musicUrls } from 'src/contsants/rofls'
 
 export type Random = (
-  guild: Maybe<Guild>,
+  guild: M.Maybe<Guild>,
   interaction: ChatInputCommandInteraction<CacheType>,
 ) => Promise<void> | void
 
@@ -30,11 +30,11 @@ export const random: Random[] = [
   async (guild) => {
     const members = await getGuildMembers(guild)
 
-    const nickname = getRandomMember(members)
-      .map((member) => member.nickname)
-      .flatMap(maybe)
+    const nickname = getRandomMember(members).mapNullable(
+      (member) => member.nickname,
+    )
 
-    mergeMap(nickname, guild, (nickname, guild) => {
+    M.mergeMap(nickname, guild, (nickname, guild) => {
       guild.edit({ name: nickname })
     })
   },
@@ -50,13 +50,13 @@ export const random: Random[] = [
       async (g) => await g.members.fetch({ user: interaction.user }),
     )
 
-    const channelId = member.flatMap((member) => maybe(member.voice.channelId))
+    const channelId = member.mapNullable((member) => member.voice.channelId)
 
     const player = new MusicPlayer()
 
     player.silentPlay(guild, channelId, musicUrls[randomInt(musicUrls.length)])
 
-    player.onEnd = maybe(() => {
+    player.onEnd = M.of(() => {
       player.destroy()
     })
   },

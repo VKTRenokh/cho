@@ -9,7 +9,7 @@ import { Command } from '../command'
 import { Charts } from './enums/charts'
 import { MaybeMap } from 'src/utils/maybe-map'
 import { getStringOption } from 'src/utils/get-string-option'
-import { Maybe } from '@victorenokh/maybe.ts'
+import { M } from '@victorenokh/maybe.ts'
 
 type Chart = Map<string, number>
 
@@ -80,7 +80,10 @@ export class MessagesChart extends Command {
     this.listenMessages(client)
   }
 
-  private getStatWithNicks(entries: Maybe<[string, number][]>, client: Client) {
+  private getStatWithNicks(
+    entries: M.Maybe<[string, number][]>,
+    client: Client,
+  ) {
     return entries.asyncMap(async (entries) => {
       const awaited = await Promise.all(
         entries.map(async ([id, stat]) => {

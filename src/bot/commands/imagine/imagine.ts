@@ -6,7 +6,7 @@ import {
 } from 'discord.js'
 import { Command } from '../command'
 import { CanvasRenderingContext2D, createCanvas, loadImage } from 'canvas'
-import { Maybe, maybe } from '@victorenokh/maybe.ts'
+import { M } from '@victorenokh/maybe.ts'
 import { Options } from 'src/utils/get-string-option'
 import {
   backgroundKey,
@@ -42,8 +42,8 @@ export class Imagine extends Command {
   }
 
   private createCanvas(
-    width: Maybe<string>,
-    height: Maybe<string>,
+    width: M.Maybe<string>,
+    height: M.Maybe<string>,
     interaction: ChatInputCommandInteraction,
   ) {
     const w = +width.getOrElse(this.defaultWidth)
@@ -64,14 +64,14 @@ export class Imagine extends Command {
   }
 
   private async drawUserAvatar(
-    id: Maybe<string>,
+    id: M.Maybe<string>,
     ctx: CanvasRenderingContext2D,
     client: Client,
   ) {
     const user = await id.asyncMap(async (id) => await client.users.fetch(id))
 
     const image = await webpImageUrlToJpegBuffer(
-      user.flatMap((user) => maybe(user.avatarURL())),
+      user.mapNullable((u) => u.avatarURL()),
     )
 
     const canvas = await image.asyncMap(async (image) => await loadImage(image))
@@ -80,7 +80,7 @@ export class Imagine extends Command {
   }
 
   private async drawImageBackground(
-    attachment: Maybe<Attachment>,
+    attachment: M.Maybe<Attachment>,
     ctx: CanvasRenderingContext2D,
   ) {
     const url = attachment.map((attachment) => attachment.url)
@@ -92,19 +92,19 @@ export class Imagine extends Command {
     canvas.map((canvas) => ctx.drawImage(canvas, 0, 0))
   }
 
-  private parseMetrics(attachment: Maybe<Attachment>) {
+  private parseMetrics(attachment: M.Maybe<Attachment>) {
     const width = attachment
-      .flatMap((attachment) => maybe(attachment.width))
+      .mapNullable((attachment) => attachment.width)
       .map((number) => number.toString())
 
     const height = attachment
-      .flatMap((attachment) => maybe(attachment.height))
+      .mapNullable((attachment) => attachment.height)
       .map((number) => number.toString())
 
     return { width, height }
   }
 
-  private setFont(ctx: CanvasRenderingContext2D, fontStyle: Maybe<string>) {
+  private setFont(ctx: CanvasRenderingContext2D, fontStyle: M.Maybe<string>) {
     const style = fontStyle.getOrElse(this.defaultFontStyle)
 
     ctx.font = `${style} ${this.fontName}`

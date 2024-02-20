@@ -1,9 +1,9 @@
-import { Maybe } from '@victorenokh/maybe.ts'
+import { M } from '@victorenokh/maybe.ts'
 import { webpBufferToJpegBuffer } from './webp-buffer-to-jpg'
 
 export const webpImageUrlToJpegBuffer = async (
-  url: Maybe<string>,
-): Promise<Maybe<Buffer>> => {
+  url: M.Maybe<string>,
+): Promise<M.Maybe<Buffer>> => {
   return (
     await (
       await url.asyncMap((url) => fetch(url))
