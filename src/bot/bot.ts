@@ -1,17 +1,27 @@
-import { Client, REST, ClientUser, Events, Routes } from 'discord.js'
+import {
+  Client,
+  REST,
+  ClientUser,
+  Events,
+  Routes,
+  Message,
+  Emoji,
+  GuildEmoji,
+} from 'discord.js'
 import { LoggerService } from '../logger/logger'
 import { randomBytes } from 'node:crypto'
-import { maybe, undefinedToMaybe } from '@victorenokh/maybe.ts'
+import { E, M } from '@victorenokh/maybe.ts'
 import { intents, partials } from 'src/contsants/constants'
 import { MusicPlayer } from './music-player/music-player'
 import { Commands } from './commands/commands'
 import { splitWithModifier } from 'src/utils/splitWithModifier'
+import { brilliantEmoteId } from './constants/emotes'
 
 export class Bot {
   private client: Client
   private player = new MusicPlayer()
   private rest: REST
-  private user = maybe<ClientUser>(null)
+  private user = M.none<ClientUser>()
   private logger = new LoggerService('Bot')
   private commands = new Commands()
   private readonly playerModifier = 'e!'
@@ -29,6 +39,18 @@ export class Bot {
     this.login(token)
   }
 
+  private reactWithBrilliantEmote(message: Message) {
+    if (!(Math.random() > 0.99)) {
+      return
+    }
+
+    const react = (emoji: GuildEmoji) => message.react(emoji)
+
+    M.undefinedToMaybe(this.client.emojis.cache.get(brilliantEmoteId)).map(
+      react,
+    )
+  }
+
   private initHandlers() {
     this.client.on(Events.InteractionCreate, async (interaction) => {
       if (!interaction.isChatInputCommand()) {
@@ -43,11 +65,7 @@ export class Bot {
     })
 
     this.client.on('messageCreate', (message) => {
-      if (Math.random() > 0.99) {
-        undefinedToMaybe(
-          this.client.emojis.cache.get('1202571355443306516'),
-        ).map((emoji) => message.react(emoji))
-      }
+      this.reactWithBrilliantEmote(message)
 
       if (!message.content.startsWith(this.playerModifier)) {
         return
@@ -57,7 +75,13 @@ export class Bot {
 
       const command = this.player.getCommand(splitted[0])
 
-      command.map((fn) => fn(message))
+      E.fromMaybe<string, (m: Message<boolean>) => void>(
+        command,
+        'unknown player command',
+      ).fold(
+        (error) => (message.reply(error), undefined),
+        (fn) => fn(message),
+      )
     })
 
     this.logger.log('handlers inited')
@@ -99,7 +123,7 @@ export class Bot {
 
       await this.client.login(token)
 
-      this.user = maybe(this.client.user)
+      this.user = M.of(this.client.user)
 
       this.changeNickname(
         `(.. 'Choooooo', 'bot') ${randomBytes(2).toString('hex')}`,
