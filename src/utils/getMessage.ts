@@ -1,17 +1,17 @@
 import { type Guild, type Message } from 'discord.js'
 import { getChannel } from './getChannel'
-import { Maybe, maybe } from '@victorenokh/maybe.ts'
+import { M } from '@victorenokh/maybe.ts'
 
 export const getMessage = async (
-  guild: Maybe<Guild>,
+  guild: M.Maybe<Guild>,
   channelId: string,
   messageId: string,
-): Promise<Maybe<Message<true>>> => {
+): Promise<M.Maybe<Message<true>>> => {
   const channel = await getChannel(guild, channelId)
 
   const message = await channel.asyncMap(async (channel) =>
     channel.isTextBased() ? channel.messages.fetch(messageId) : null,
   )
 
-  return message.flatMap(maybe)
+  return message.flatMap(M.of)
 }

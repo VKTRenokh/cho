@@ -7,7 +7,7 @@ import {
 } from 'src/contsants/constants'
 import { LoggerService } from 'src/logger/logger'
 import { getMessage } from 'src/utils/getMessage'
-import { maybe, undefinedToMaybe } from '@victorenokh/maybe.ts'
+import { M } from '@victorenokh/maybe.ts'
 
 export const sendhi = async (
   interaction: ChatInputCommandInteraction<CacheType>,
@@ -16,14 +16,14 @@ export const sendhi = async (
 ): Promise<void> => {
   try {
     const message = await getMessage(
-      maybe(interaction.guild),
+      M.of(interaction.guild),
       legendaryChannelId,
       legendaryRajiSlideId,
     )
 
     const stickers = await client.fetchPremiumStickerPacks()
 
-    const stickerPack = undefinedToMaybe(stickers.get(chocoStickerPackId))
+    const stickerPack = M.undefinedToMaybe(stickers.get(chocoStickerPackId))
 
     const sticker = stickerPack.mapNullable((pack) =>
       pack.stickers.get(chocoHelloStickerId),
