@@ -4,7 +4,7 @@ import { LoggerService } from 'src/logger/logger.ts'
 import { sendhi } from './sendhi/sendhi.ts'
 import { setnick } from './setnick/setnick.ts'
 import { rofls } from './rofls/rofls.ts'
-import { maybe } from '@victorenokh/maybe.ts'
+import { M } from '@victorenokh/maybe.ts'
 import { Imagine } from './imagine/imagine.ts'
 import { Fortune } from './fortune/fortune.ts'
 import { MessagesChart } from './messages-chart/messages-chart.ts'
@@ -14,7 +14,7 @@ import { Countdown } from './countdown/countdown.ts'
 export class Commands {
   private logger = new LoggerService('Commands')
   public slashCommands = new MaybeMap<string, Command>([])
-  private client = maybe<Client>(null)
+  private client = M.none<Client>()
   private messagesChart = new MessagesChart('chart')
 
   constructor() {
@@ -36,7 +36,7 @@ export class Commands {
       return
     }
 
-    this.client = maybe(client)
+    this.client = M.of(client)
 
     this.messagesChart.setClient(client)
   }
