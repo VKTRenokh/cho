@@ -54,10 +54,10 @@ export const random: Random[] = [
 
     const player = new MusicPlayer()
 
-    player.silentPlay(guild, channelId, musicUrls[randomInt(musicUrls.length)])
-
-    player.onEnd = M.of(() => {
-      player.destroy()
-    })
+    // player.silentPlay(guild, channelId, musicUrls[randomInt(musicUrls.length)])
+    //
+    // player.onEnd = M.of(() => {
+    //   player.destroy()
+    // })
   },
 ]

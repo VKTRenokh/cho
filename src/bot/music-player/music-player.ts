@@ -1,32 +1,45 @@
-import voice, {
+import { E, M } from '@victorenokh/maybe.ts'
+import * as pdl from 'play-dl'
+import {
+  AudioPlayer,
+  AudioPlayerState,
   AudioPlayerStatus,
+  AudioResource,
+  PlayerSubscription,
+  VoiceConnection,
   createAudioPlayer,
   createAudioResource,
   joinVoiceChannel,
 } from '@discordjs/voice'
-import { M } from '@victorenokh/maybe.ts'
-import * as pdl from 'play-dl'
-import { Message } from 'discord.js'
+import { Guild, GuildMember, Message } from 'discord.js'
 import { LoggerService } from 'src/logger/logger'
-import { Guild } from 'discord.js'
-import { playing } from 'src/contsants/player-reply'
-import { disconnectTimeout } from 'src/contsants/constants'
 import { getLink } from './utils/get-link'
+import { Queue } from './utils/queue'
 
 export type Command = (message: Message<boolean>) => void
 
+interface Player {
+  player: AudioPlayer
+  subscription: M.Maybe<PlayerSubscription>
+}
+
+interface Playable {
+  resource: Promise<AudioResource<null>>
+  player: Player
+  url: string
+}
+
 export class MusicPlayer {
-  private voiceState = M.none<voice.VoiceConnection>()
-  private audioPlayer = M.none<voice.AudioPlayer>()
-  private subscription = M.none<voice.PlayerSubscription>()
   private logger = new LoggerService('Music Player')
   public onEnd = M.none<() => void>()
-  private queue: string[] = []
+  private queue = new Queue<string>()
+  public status: AudioPlayerStatus = AudioPlayerStatus.Idle
 
   private commands = new Map<string, Command>([
-    ['play', (message) => this.play(message, getLink(message))],
-    ['pause', () => this.pause()],
-    ['unpause', () => this.unpause()],
+    ['play', (message) => this.play(message)],
+    // ['pause', () => this.pause()],
+    // ['unpause', () => this.unpause()],
+    ['nigger', () => undefined],
     ['stop', () => this.stop()],
   ])
 
@@ -35,10 +48,9 @@ export class MusicPlayer {
   }
 
   public getCommandsString() {
-    return Array.from(this.commands.keys()).reduce(
-      (acc, curr) => acc + ', ' + curr,
-      '',
-    )
+    return Array.from(this.commands.keys())
+      .filter(Boolean)
+      .reduce((acc, curr) => acc + ', ' + curr, '')
   }
 
   public getCommand(key: string): M.Maybe<Command> {
@@ -46,119 +58,127 @@ export class MusicPlayer {
   }
 
   private stop() {
-    this.audioPlayer.map((player) => player.stop())
+    this.queue = new Queue()
   }
 
-  private pause() {
-    this.audioPlayer.map((player) => player.pause())
+  private getVoiceChannelId(
+    member: M.Maybe<GuildMember>,
+  ): E.Either<string, string> {
+    const voiceId = member.mapNullable((m) => m.voice.channelId)
+
+    return E.fromMaybe(voiceId, 'you should join voice channel firstly')
   }
 
-  private unpause() {
-    this.audioPlayer.map((player) => player.unpause())
+  private parseUrl(message: Message<boolean>): E.Either<string, string> {
+    return E.fromMaybe(getLink(message), 'no link was provided')
   }
 
-  private createVoiceState(guild: M.Maybe<Guild>, voiceId: M.Maybe<string>) {
-    return M.mergeMap(guild, voiceId, (guild, voiceId) =>
-      joinVoiceChannel({
-        guildId: guild.id,
-        channelId: voiceId,
-        adapterCreator: guild.voiceAdapterCreator,
-      }),
+  private createVoiceState(guild: M.Maybe<Guild>, channelId: string) {
+    return E.fromMaybe<string, VoiceConnection>(
+      guild.map((guild) =>
+        joinVoiceChannel({
+          channelId,
+          adapterCreator: guild.voiceAdapterCreator,
+          guildId: guild.id,
+        }),
+      ),
+      'no guild',
     )
   }
 
-  private createAudioPlayer(voiceState: M.Maybe<voice.VoiceConnection>) {
-    return voiceState.map((state) => {
-      const player = createAudioPlayer()
+  private createAudioPlayer(state: VoiceConnection) {
+    const player = createAudioPlayer()
 
-      this.subscription = M.fromUndefined(state.subscribe(player))
-
-      return player
-    })
+    return { player, subscription: M.fromUndefined(state.subscribe(player)) }
   }
 
   private async createAudioResource(url: string) {
-    const video = await pdl.stream(url, {
-      discordPlayerCompatibility: true,
-    })
+    const video = await pdl.stream(url, { discordPlayerCompatibility: true })
 
     return createAudioResource(video.stream)
   }
 
-  private play(message: Message<boolean>, url: M.Maybe<string>): void {
-    this.logger.log(`play try ${url.getOrElse('no url')}`)
+  private async test(playable: Playable, message: Message<boolean>) {
+    const resource = await playable.resource
+    const player = playable.player.player
+
+    player.play(resource)
+    this.status = AudioPlayerStatus.Playing
+
+    const listener = (_: AudioPlayerState, state: AudioPlayerState) => {
+      this.status = state.status
+
+      if (state.status !== AudioPlayerStatus.Idle) {
+        return
+      }
+
+      M.of(this.queue.dequeue()).map((link) => this.play(message, link))
+
+      player.removeListener('stateChange', listener)
+    }
+
+    player.on('stateChange', listener)
+
+    console.log(this.status)
+  }
+
+  private onPlaying(message: Message<boolean>) {
+    getLink(message).map((link) => this.queue.enqueue(link))
+
+    console.log(this.queue)
+  }
+
+  private play(message: Message<boolean>, link?: string) {
+    console.log(this.status)
+    if (
+      this.status === AudioPlayerStatus.Playing ||
+      (this.status === AudioPlayerStatus.Buffering && !link)
+    ) {
+      this.onPlaying(message)
+      return
+    }
 
     const member = M.of(message.member)
+    const guild = member.map((member) => member.guild)
 
-    const guild = member.map((m) => m.guild)
+    const voiceChannelId = this.getVoiceChannelId(member)
 
-    const voiceId = member.mapNullable((m) => m.voice.channelId)
+    const url = voiceChannelId.flatMap((id) =>
+      !link
+        ? this.parseUrl(message).map((url) => ({ id, url }))
+        : E.right({ url: link, id }),
+    )
 
-    this.voiceState = url.flatMap(() => this.createVoiceState(guild, voiceId))
+    const player = url
+      .flatMap((v) =>
+        this.createVoiceState(guild, v.id).map((connection) => ({
+          state: connection,
+          url: v.url,
+        })),
+      )
+      .map((v) => ({ url: v.url, player: this.createAudioPlayer(v.state) }))
 
-    this.audioPlayer = this.createAudioPlayer(this.voiceState)
+    const withResource = player.map((v) => ({
+      ...v,
+      resource: this.createAudioResource(v.url),
+    }))
 
-    this.audioPlayer.merge(url).asyncMap(async (merged) => {
-      try {
-        const resource = await this.createAudioResource(merged.right)
-
-        merged.left.play(resource)
-
-        message.reply({
-          embeds: [playing],
-        })
-
-        this.logger.log(`playing ${merged.right}`)
-
-        merged.left.on('stateChange', (state) => {
-          if (state.status !== AudioPlayerStatus.Idle) {
-            return
-          }
-
-          this.disconectOnIdle(disconnectTimeout)
-        })
-      } catch (e) {
-        this.logger.error(`error occured while trying to play ${e}`)
-      }
-    })
-  }
-
-  private disconectOnIdle(timeout: number) {
-    setTimeout(() => {
-      this.stop()
-      this.subscription.map((s) => s.unsubscribe())
-    }, timeout)
-  }
-
-  public silentPlay(
-    guild: M.Maybe<Guild>,
-    voiceId: M.Maybe<string>,
-    url: string,
-  ): void {
-    this.voiceState = this.createVoiceState(guild, voiceId)
-
-    this.audioPlayer = this.createAudioPlayer(this.voiceState)
-
-    this.audioPlayer.asyncMap(async (player) => {
-      const resource = await this.createAudioResource(url)
-
-      player.play(resource)
-
-      player.on('stateChange', (_, state) => {
-        if (state.status === AudioPlayerStatus.Idle) {
-          this.onEnd.map((fn) => fn())
-        }
-      })
-
-      this.logger.log(`silent playing ${url}`)
-    })
-  }
-
-  public destroy() {
-    this.voiceState.merge(this.audioPlayer).map((merged) => {
-      merged.left.destroy()
-      merged.right.stop()
-    })
-    this.subscription.map((s) => s.unsubscribe())
+    withResource.fold(
+      (e) => (message.reply(e), undefined),
+      (v) => this.test(v, message),
+    )
   }
 }
+
+// const player = url
+//   .flatMap((v) => ({
+//     state: this.createVoiceState(guild, v.id),
+//     url: v.url,
+//   }))
+//   .map((v) => this.createAudioPlayer(v))
+
+// const url = player.flatMap((player) =>
+//   !link
+//     ? this.parseUrl(message).map((url) => ({ player, url }))
+//     : E.right({ url: link, player }),
+// )

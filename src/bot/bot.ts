@@ -74,7 +74,7 @@ export class Bot {
 
       E.fromMaybe<string, Command>(
         command,
-        `unknown player command. Available command are: ${this.player.getCommandsString()}`,
+        `unknown player command. Available commands are: ${this.player.getCommandsString()}`,
       ).fold(
         (error) => (message.reply({ content: error }), undefined),
         (fn) => fn(message),
@@ -134,6 +134,6 @@ export class Bot {
 
   public async destroy(): Promise<void> {
     await this.client.destroy()
-    this.player.destroy()
+    // this.player.destroy()
   }
 }
