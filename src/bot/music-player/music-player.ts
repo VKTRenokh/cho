@@ -31,20 +31,37 @@ interface Playable {
 
 export class MusicPlayer {
   private logger = new LoggerService('Music Player')
-  public onEnd = M.none<() => void>()
   private queue = new Queue<string>()
+  private player = M.none<AudioPlayer>()
+
+  public onEnd = M.none<() => void>()
   public status: AudioPlayerStatus = AudioPlayerStatus.Idle
 
   private commands = new Map<string, Command>([
     ['play', (message) => this.play(message)],
-    // ['pause', () => this.pause()],
-    // ['unpause', () => this.unpause()],
-    ['nigger', () => undefined],
+    ['pause', () => this.pause()],
+    ['unpause', () => this.unpause()],
+    ['skip', (message) => this.skip(message)],
     ['stop', () => this.stop()],
   ])
 
   constructor() {
     this.logger.log('init')
+  }
+
+  private unpause() {
+    this.player.map((player) => player.unpause())
+  }
+
+  private pause() {
+    this.player.map((player) => player.pause())
+  }
+
+  private skip(message: Message<boolean>) {
+    M.of(this.queue.dequeue()).map((link) => {
+      message.reply('skiping..')
+      this.play(message, link)
+    })
   }
 
   public getCommandsString() {
@@ -98,11 +115,16 @@ export class MusicPlayer {
     return createAudioResource(video.stream)
   }
 
-  private async test(playable: Playable, message: Message<boolean>) {
+  private async startPlaying(playable: Playable, message: Message<boolean>) {
     const resource = await playable.resource
     const player = playable.player.player
 
+    this.player = M.of(player)
+
     player.play(resource)
+
+    message.reply('playing...')
+
     this.status = AudioPlayerStatus.Playing
 
     const listener = (_: AudioPlayerState, state: AudioPlayerState) => {
@@ -118,14 +140,10 @@ export class MusicPlayer {
     }
 
     player.on('stateChange', listener)
-
-    console.log(this.status)
   }
 
   private onPlaying(message: Message<boolean>) {
     getLink(message).map((link) => this.queue.enqueue(link))
-
-    console.log(this.queue)
   }
 
   private play(message: Message<boolean>, link?: string) {
@@ -165,20 +183,7 @@ export class MusicPlayer {
 
     withResource.fold(
       (e) => (message.reply(e), undefined),
-      (v) => this.test(v, message),
+      (v) => this.startPlaying(v, message),
     )
   }
 }
-
-// const player = url
-//   .flatMap((v) => ({
-//     state: this.createVoiceState(guild, v.id),
-//     url: v.url,
-//   }))
-//   .map((v) => this.createAudioPlayer(v))
-
-// const url = player.flatMap((player) =>
-//   !link
-//     ? this.parseUrl(message).map((url) => ({ player, url }))
-//     : E.right({ url: link, player }),
-// )
