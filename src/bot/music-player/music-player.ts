@@ -34,10 +34,15 @@ export class MusicPlayer {
     this.logger.log('init')
   }
 
-  public getCommand(key: string) {
-    const command = this.commands.get(key)
+  public getCommandsString() {
+    return Array.from(this.commands.keys()).reduce(
+      (acc, curr) => acc + ', ' + curr,
+      '',
+    )
+  }
 
-    return M.of(command)
+  public getCommand(key: string): M.Maybe<Command> {
+    return M.fromUndefined(this.commands.get(key))
   }
 
   private stop() {
@@ -66,7 +71,7 @@ export class MusicPlayer {
     return voiceState.map((state) => {
       const player = createAudioPlayer()
 
-      this.subscription = M.undefinedToMaybe(state.subscribe(player))
+      this.subscription = M.fromUndefined(state.subscribe(player))
 
       return player
     })

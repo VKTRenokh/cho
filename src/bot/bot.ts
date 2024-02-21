@@ -5,11 +5,9 @@ import {
   Events,
   Routes,
   Message,
-  Emoji,
   GuildEmoji,
 } from 'discord.js'
 import { LoggerService } from '../logger/logger'
-import { randomBytes } from 'node:crypto'
 import { E, M } from '@victorenokh/maybe.ts'
 import { intents, partials } from 'src/contsants/constants'
 import { Command, MusicPlayer } from './music-player/music-player'
@@ -44,11 +42,10 @@ export class Bot {
       return
     }
 
+    const emoji = this.client.emojis.cache.get(brilliantEmoteId)
     const react = (emoji: GuildEmoji) => message.react(emoji)
 
-    M.undefinedToMaybe(this.client.emojis.cache.get(brilliantEmoteId)).map(
-      react,
-    )
+    M.fromUndefined(emoji).map(react)
   }
 
   private initHandlers() {
@@ -75,8 +72,11 @@ export class Bot {
 
       const command = this.player.getCommand(splitted[0])
 
-      E.fromMaybe<string, Command>(command, 'unknown player command').fold(
-        (error) => (message.reply(error), undefined),
+      E.fromMaybe<string, Command>(
+        command,
+        `unknown player command. Available command are: ${this.player.getCommandsString()}`,
+      ).fold(
+        (error) => (message.reply({ content: error }), undefined),
         (fn) => fn(message),
       )
     })
@@ -121,10 +121,6 @@ export class Bot {
       await this.client.login(token)
 
       this.user = M.of(this.client.user)
-
-      this.changeNickname(
-        `(.. 'Choooooo', 'bot') ${randomBytes(2).toString('hex')}`,
-      )
 
       await this.createCommands()
 

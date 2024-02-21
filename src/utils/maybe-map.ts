@@ -6,6 +6,6 @@ export class MaybeMap<K, V> extends Map<K, V> {
   }
 
   public getMaybe(key: K): M.Maybe<V> {
-    return M.undefinedToMaybe(super.get(key))
+    return M.fromUndefined(super.get(key))
   }
 }

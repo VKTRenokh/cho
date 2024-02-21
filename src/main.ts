@@ -1,27 +1,13 @@
 import { configDotenv } from 'dotenv'
-import { Bot } from './bot/bot'
-import { LoggerService } from './logger/logger'
+import { createBot } from './create-bot'
 
 const main = (): void => {
-  const logger = new LoggerService('App')
-
   configDotenv()
 
-  if (!process.env.TOKEN) {
-    logger.error('no token')
-    return
-  }
+  const bot = createBot()
 
-  const bot = new Bot(process.env.TOKEN)
-
-  // process.on('uncaughtException', (e) => {
-  //   logger.warn(`uncaughtException: ${e}`)
-  // })
-  //
-  // process.on('unhandledRejection', (e) => {
-  //   logger.warn(`unhandledRejection: ${e}`)
-  // })
-
+  process.on('uncaughtException', (e) => console.warn(e))
+  process.on('unhandledRejection', (e) => console.error(e))
   process.on('SIGINT', async () => {
     await bot.destroy()
     process.exit()

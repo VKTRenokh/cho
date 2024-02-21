@@ -23,7 +23,7 @@ export const sendhi = async (
 
     const stickers = await client.fetchPremiumStickerPacks()
 
-    const stickerPack = M.undefinedToMaybe(stickers.get(chocoStickerPackId))
+    const stickerPack = M.fromUndefined(stickers.get(chocoStickerPackId))
 
     const sticker = stickerPack.mapNullable((pack) =>
       pack.stickers.get(chocoHelloStickerId),
