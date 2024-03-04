@@ -52,4 +52,17 @@ export class Queue<T> {
   public isEmpty(): boolean {
     return this.head === null
   }
+
+  public toArray() {
+    const result: T[] = []
+
+    let current = this.head
+
+    while (current !== null) {
+      result.push(current.value)
+      current = current.next
+    }
+
+    return result
+  }
 }

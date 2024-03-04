@@ -43,10 +43,21 @@ export class MusicPlayer {
     ['unpause', () => this.unpause()],
     ['skip', (message) => this.skip(message)],
     ['stop', () => this.stop()],
+    ['queue', (message) => this.showQueue(message)],
   ])
 
   constructor() {
     this.logger.log('init')
+  }
+
+  private showQueue(message: Message<boolean>) {
+    const links = this.queue
+      .toArray()
+      .reduce((acc, curr) => `${acc}\n${curr}`, '')
+
+    message.reply({
+      content: links || 'queue is empty',
+    })
   }
 
   private unpause() {
@@ -57,11 +68,20 @@ export class MusicPlayer {
     this.player.map((player) => player.pause())
   }
 
+  private next(): E.Either<string, string> {
+    const link = this.queue.dequeue()
+
+    return link ? E.right(link) : E.left('there is no tracks in queue')
+  }
+
   private skip(message: Message<boolean>) {
-    M.of(this.queue.dequeue()).map((link) => {
-      message.reply('skiping..')
-      this.play(message, link)
-    })
+    this.next().fold<unknown>(
+      (error) => message.reply({ content: error }),
+      (link) => {
+        message.reply({ content: 'skiping...' })
+        this.play(message, link)
+      },
+    )
   }
 
   public getCommandsString() {
@@ -147,10 +167,10 @@ export class MusicPlayer {
   }
 
   private play(message: Message<boolean>, link?: string) {
-    console.log(this.status)
     if (
-      this.status === AudioPlayerStatus.Playing ||
-      (this.status === AudioPlayerStatus.Buffering && !link)
+      (this.status === AudioPlayerStatus.Playing ||
+        this.status === AudioPlayerStatus.Buffering) &&
+      !link
     ) {
       this.onPlaying(message)
       return
