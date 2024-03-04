@@ -53,10 +53,10 @@ export class MusicPlayer {
   private showQueue(message: Message<boolean>) {
     const links = this.queue
       .toArray()
-      .reduce((acc, curr) => `${acc}\n${curr}`, '')
+      .reduce((acc, curr, index) => `${acc}\n${curr} - ${index}`, '')
 
     message.reply({
-      content: links || 'queue is empty',
+      content: `total: ${links.length}\n ${links}`,
     })
   }
 
@@ -107,7 +107,7 @@ export class MusicPlayer {
   }
 
   private parseUrl(message: Message<boolean>): E.Either<string, string> {
-    return E.fromMaybe(getLink(message), 'no link was provided')
+    return getLink(message)
   }
 
   private createVoiceState(guild: M.Maybe<Guild>, channelId: string) {
