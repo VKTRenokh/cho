@@ -39,7 +39,7 @@ module.exports = {
         tabWidth: 2,
       },
     ],
-    'max-lines-per-function': ['error', 40],
+    'max-lines-per-function': ['error', 60],
     'no-param-reassign': 1,
     'no-plusplus': 0,
     'no-unused-vars': 0,

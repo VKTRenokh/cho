@@ -11,10 +11,17 @@ import {
   createAudioResource,
   joinVoiceChannel,
 } from '@discordjs/voice'
-import { Guild, GuildMember, Message } from 'discord.js'
+import {
+  ColorResolvable,
+  EmbedBuilder,
+  Guild,
+  GuildMember,
+  Message,
+} from 'discord.js'
 import { LoggerService } from 'src/logger/logger'
 import { getLink } from './utils/get-link'
 import { Queue } from './utils/queue'
+import { replyWithEmbed } from 'src/utils/reply-with-embed'
 
 export type Command = (message: Message<boolean>) => void
 
@@ -33,6 +40,9 @@ export class MusicPlayer {
   private logger = new LoggerService('Music Player')
   private queue = new Queue<string>()
   private player = M.none<AudioPlayer>()
+  private currentLink = M.of<string>(
+    'https://www.youtube.com/watch?v=u4ZtCuxMls0',
+  )
 
   public onEnd = M.none<() => void>()
   public status: AudioPlayerStatus = AudioPlayerStatus.Idle
@@ -44,10 +54,38 @@ export class MusicPlayer {
     ['skip', (message) => this.skip(message)],
     ['stop', () => this.stop()],
     ['queue', (message) => this.showQueue(message)],
+    ['np', (message) => this.showTrackInfo(message)],
   ])
 
   constructor() {
     this.logger.log('init')
+  }
+
+  private videoInfoToEmbed(info: pdl.InfoData) {
+    const hex = Buffer.from(info.video_details.title ?? '')
+      .toString('hex')
+      .slice(0, 6)
+    const tags = info.video_details.tags.join(', ')
+
+    return new EmbedBuilder()
+      .setTitle(info.video_details.title ?? null)
+      .addFields([
+        { name: 'duration', value: info.video_details.durationRaw },
+        { name: 'tags', value: tags || 'no tags' },
+      ])
+      .setImage(info.video_details.thumbnails[0].url)
+      .setDescription(info.video_details.description ?? null)
+      .setColor(`#${hex}`)
+  }
+
+  private async showTrackInfo(message: Message<boolean>) {
+    const videoInfo = await this.currentLink.asyncMap((link) => {
+      return pdl.video_info(link)
+    })
+
+    const embed = videoInfo.map(this.videoInfoToEmbed.bind(this))
+
+    embed.map(replyWithEmbed(message))
   }
 
   private showQueue(message: Message<boolean>) {
@@ -87,7 +125,7 @@ export class MusicPlayer {
   public getCommandsString() {
     return Array.from(this.commands.keys())
       .filter(Boolean)
-      .reduce((acc, curr) => acc + ', ' + curr, '')
+      .reduce((acc, curr) => `${acc}\n${curr}`, '')
   }
 
   public getCommand(key: string): M.Maybe<Command> {
@@ -106,8 +144,11 @@ export class MusicPlayer {
     return E.fromMaybe(voiceId, 'you should join voice channel firstly')
   }
 
-  private parseUrl(message: Message<boolean>): E.Either<string, string> {
-    return getLink(message)
+  private createUrlParser(message: Message, link?: string) {
+    return (id: string): E.Either<string, { id: string; url: string }> =>
+      !link
+        ? getLink(message).map((url) => ({ id, url }))
+        : E.right({ url: link, id })
   }
 
   private createVoiceState(guild: M.Maybe<Guild>, channelId: string) {
@@ -167,11 +208,7 @@ export class MusicPlayer {
   }
 
   private play(message: Message<boolean>, link?: string) {
-    if (
-      (this.status === AudioPlayerStatus.Playing ||
-        this.status === AudioPlayerStatus.Buffering) &&
-      !link
-    ) {
+    if (this.status === AudioPlayerStatus.Playing && !link) {
       this.onPlaying(message)
       return
     }
@@ -181,11 +218,7 @@ export class MusicPlayer {
 
     const voiceChannelId = this.getVoiceChannelId(member)
 
-    const url = voiceChannelId.flatMap((id) =>
-      !link
-        ? this.parseUrl(message).map((url) => ({ id, url }))
-        : E.right({ url: link, id }),
-    )
+    const url = voiceChannelId.flatMap(this.createUrlParser(message, link))
 
     const player = url
       .flatMap((v) =>
@@ -203,7 +236,10 @@ export class MusicPlayer {
 
     withResource.fold(
       (e) => (message.reply(e), undefined),
-      (v) => this.startPlaying(v, message),
+      (v) => {
+        this.currentLink = M.of(v.url)
+        this.startPlaying(v, message)
+      },
     )
   }
 }
