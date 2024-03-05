@@ -11,13 +11,7 @@ import {
   createAudioResource,
   joinVoiceChannel,
 } from '@discordjs/voice'
-import {
-  ColorResolvable,
-  EmbedBuilder,
-  Guild,
-  GuildMember,
-  Message,
-} from 'discord.js'
+import { EmbedBuilder, Guild, GuildMember, Message } from 'discord.js'
 import { LoggerService } from 'src/logger/logger'
 import { getLink } from './utils/get-link'
 import { Queue } from './utils/queue'
@@ -89,12 +83,15 @@ export class MusicPlayer {
   }
 
   private showQueue(message: Message<boolean>) {
-    const links = this.queue
-      .toArray()
-      .reduce((acc, curr, index) => `${acc}\n${curr} - ${index}`, '')
+    const links = this.queue.toArray()
+
+    const linksString = links.reduce(
+      (acc, curr, index) => `${acc}\n${curr} - ${index + 1}`,
+      '',
+    )
 
     message.reply({
-      content: `total: ${links.length}\n ${links}`,
+      content: `total: ${links.length}\n ${linksString}`,
     })
   }
 
@@ -134,6 +131,10 @@ export class MusicPlayer {
 
   private stop() {
     this.queue = new Queue()
+
+    this.player = this.player.mapNullable<AudioPlayer>(
+      (player) => (player.stop(), null),
+    )
   }
 
   private getVoiceChannelId(
