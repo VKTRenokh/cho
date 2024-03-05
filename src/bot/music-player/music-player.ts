@@ -34,9 +34,7 @@ export class MusicPlayer {
   private logger = new LoggerService('Music Player')
   private queue = new Queue<string>()
   private player = M.none<AudioPlayer>()
-  private currentLink = M.of<string>(
-    'https://www.youtube.com/watch?v=u4ZtCuxMls0',
-  )
+  private currentLink = M.none<string>()
 
   public onEnd = M.none<() => void>()
   public status: AudioPlayerStatus = AudioPlayerStatus.Idle
