@@ -16,6 +16,7 @@ import { LoggerService } from 'src/logger/logger'
 import { getLink } from './utils/get-link'
 import { Queue } from './utils/queue'
 import { replyWithEmbed } from 'src/utils/reply-with-embed'
+import { reply } from 'src/utils/reply'
 
 export type Command = (message: Message<boolean>) => void
 
@@ -47,10 +48,46 @@ export class MusicPlayer {
     ['stop', () => this.stop()],
     ['queue', (message) => this.showQueue(message)],
     ['np', (message) => this.showTrackInfo(message)],
+    ['related', (message) => this.showRelated(message)],
+    ['addRelated', () => this.addRelated()],
+    ['search', (message) => this.search(message)],
   ])
 
   constructor() {
     this.logger.log('init')
+  }
+
+  private async search(message: Message<boolean>) {
+    const searchString = message.content.split(' ')[1]
+
+    const search = await pdl.search(searchString, {
+      source: { youtube: 'video' },
+    })
+
+    const links = search.map((info) => info.url)
+
+    reply(message)(links.join('\n'))
+  }
+
+  private async getRelatedVideos(link: string) {
+    const info = await pdl.video_info(link)
+    return info.related_videos
+  }
+
+  private async addRelated() {
+    const videos = await this.currentLink.asyncMap(
+      this.getRelatedVideos.bind(this),
+    )
+
+    videos.map((videos) => videos.forEach((video) => this.queue.enqueue(video)))
+  }
+
+  private async showRelated(message: Message<boolean>) {
+    const videos = await this.currentLink.asyncMap(
+      this.getRelatedVideos.bind(this),
+    )
+
+    videos.map((strings) => strings.join('\n')).map(reply(message))
   }
 
   private videoInfoToEmbed(info: pdl.InfoData) {
